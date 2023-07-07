@@ -1,13 +1,14 @@
 import { useRef, useState } from "react";
-import { Container, Sprite, Stage, Text } from "@pixi/react";
+import { Container, Sprite, Stage } from "@pixi/react";
 import { v4 as uuid } from "uuid";
+import "@pixi/events";
 import MarkPoint from "components/MarkPoint";
 
 // Constants
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
 const INITIAL_ZOOM = 1;
-const ZOOM_SPEED = 0.1;
+const ZOOM_SPEED = 0.0001;
 const IMG_PATH =
   "https://i.epochtimes.com/assets/uploads/2023/03/id13947271-2303030726001487.jpg";
 type Comment = {
@@ -20,66 +21,60 @@ type Comment = {
   color: string;
 };
 
-type CommentDialog = {
-  comments: Comment[];
-  onClose: () => void;
-  onComment: (content: string) => void;
-};
-
 // Comment dialog component
-const CommentDialog = ({ comments, onClose, onComment }: CommentDialog) => {
-  const [newComment, setNewComment] = useState("");
 
-  const handleComment = () => {
-    if (newComment.trim() !== "") {
-      onComment(newComment);
-      setNewComment("");
-    }
-  };
-
-  return (
-    <div>
-      {comments.map((comment, index) => (
-        <div key={index}>
-          <strong>{comment.username}</strong>: {comment.content} (
-          {comment.timestamp})
-        </div>
-      ))}
-      <input
-        type="text"
-        value={newComment}
-        onChange={(e) => setNewComment(e.target.value)}
-      />
-      <button onClick={handleComment}>Add Comment</button>
-      <button onClick={onClose}>Close</button>
-    </div>
-  );
-};
-
-// App component
 const App = () => {
   const [zoom, setZoom] = useState(INITIAL_ZOOM);
+
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [comments, setComments] = useState<Comment[]>([]);
+  const [panFlag, setPanFlag] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
   const [selectedImage, setSelectedImage] = useState<Comment | null>(null);
+  const mouseDownPositionRef = useRef(position);
+  const prevPositionRef = useRef(position);
+  const handleZoom = (e: React.WheelEvent<HTMLCanvasElement>) => {
+    if (
+      zoom + e.deltaY * ZOOM_SPEED >= 0.5 ||
+      zoom + e.deltaY * ZOOM_SPEED <= 1.5
+    )
+      setZoom(zoom + e.deltaY * ZOOM_SPEED);
+  };
+  const handleMouseDown = (
+    e: React.MouseEvent<HTMLCanvasElement, MouseEvent>
+  ) => {
+    mouseDownPositionRef.current = {
+      x: e.nativeEvent.clientX,
+      y: e.nativeEvent.clientY,
+    };
+    setPanFlag(true);
+  };
+  const handleMouseMove = (
+    e: React.MouseEvent<HTMLCanvasElement, MouseEvent>
+  ) => {
+    if (panFlag) {
+      const { clientX, clientY } = e;
 
-  const stageRef = useRef(null);
-
-  const handleZoom = (delta: number) => {
-    setZoom((prevZoom) => Math.max(prevZoom + delta / 100, 0.1));
+      setPosition({
+        x:
+          prevPositionRef.current.x +
+          (clientX - mouseDownPositionRef.current.x),
+        y:
+          prevPositionRef.current.y +
+          (clientY - mouseDownPositionRef.current.y),
+      });
+    }
+  };
+  const handleMouseUp = () => {
+    setPanFlag(false);
+    mouseDownPositionRef.current = position;
+    prevPositionRef.current = position;
   };
 
-  const handlePan = (deltaX: number, deltaY: number) => {
-    setPosition((prevPosition) => ({
-      x: prevPosition.x + deltaX,
-      y: prevPosition.y + deltaY,
-    }));
-  };
-
-  const handleCanvasClick = (
+  const handleImageClick = (
     event: React.MouseEvent<HTMLCanvasElement, MouseEvent>
   ) => {
+    event.stopPropagation();
     const { offsetX, offsetY } = event.nativeEvent;
     const id = uuid();
     const comment = {
@@ -123,40 +118,37 @@ const App = () => {
   return (
     <div>
       <Stage
-        ref={stageRef}
         width={CANVAS_WIDTH}
         height={CANVAS_HEIGHT}
-        onWheel={(event) => handleZoom(event.deltaY * ZOOM_SPEED)}
-        onClick={(e) => handleCanvasClick(e)}
+        onWheel={handleZoom}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onMouseMove={handleMouseMove}
         renderOnComponentChange={true}
       >
-        <Container position={position} scale={{ x: zoom, y: zoom }}>
+        <Container
+          position={position}
+          scale={{ x: zoom, y: zoom }}
+          interactive={true}
+        >
           <Sprite
             image={IMG_PATH}
             x={100}
             y={100}
-            zIndex={0}
-            width={200}
-            height={200}
             interactive={true}
-            pointerdown={
-              (e) => {
-                e.stopPropagation();
-                console.log("clicking on image");
-              } /* Prevents panning when clicking on image */
-            }
+            pointerdown={handleImageClick}
           />
-          <Text x={0} y={0} text="💬" />
+          {comments.map((comment, index) => (
+            <MarkPoint
+              key={comment.id}
+              x={comment.x}
+              y={comment.y}
+              zIndex={index + 3}
+              color={comment.color}
+              onClick={() => null}
+            />
+          ))}
         </Container>
-        {comments.map((comment, index) => (
-          <MarkPoint
-            key={comment.id}
-            x={comment.x}
-            y={comment.y}
-            zIndex={index + 3}
-            color={comment.color}
-          />
-        ))}
       </Stage>
 
       {/* {showDialog && (
@@ -191,6 +183,34 @@ const App = () => {
           </button>
         </div>
       )}
+      <button
+        onClick={() =>
+          setPosition((prev) => ({ ...prev, y: prev.y + 1 * zoom }))
+        }
+      >
+        up
+      </button>
+      <button
+        onClick={() =>
+          setPosition((prev) => ({ ...prev, y: prev.y - 1 * zoom }))
+        }
+      >
+        down
+      </button>
+      <button
+        onClick={() =>
+          setPosition((prev) => ({ ...prev, x: prev.x + 1 * zoom }))
+        }
+      >
+        left
+      </button>
+      <button
+        onClick={() =>
+          setPosition((prev) => ({ ...prev, x: prev.x - 1 * zoom }))
+        }
+      >
+        right
+      </button>
     </div>
   );
 };

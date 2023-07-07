@@ -8,9 +8,10 @@ type Comment = {
   color: string;
 };
 
-type CommentDialog = {
+type CommentDialogProps = {
   comments: Comment[];
   onClose: () => void;
   onComment: (content: string) => void;
 };
-export type { Comment, CommentDialog };
+
+export type { Comment, CommentDialogProps };
