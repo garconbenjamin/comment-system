@@ -1,17 +1,15 @@
 type Comment = {
-  x: number;
-  y: number;
-  id: string;
+  id?: string;
   username: string;
   content: string;
   timestamp: string;
+};
+
+type Dialog = {
+  x: number;
+  y: number;
+  id: string;
+  comments: Comment[];
   color: string;
 };
-
-type CommentDialogProps = {
-  comments: Comment[];
-  onClose: () => void;
-  onComment: (content: string) => void;
-};
-
-export type { Comment, CommentDialogProps };
+export type { Comment, Dialog };

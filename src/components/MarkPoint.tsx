@@ -6,9 +6,9 @@ const MarkPoint = (props: {
   y: number;
   color?: string;
   zIndex: number;
-  onClick?: () => void;
+  onClick?: (e: any) => void;
 }) => {
-  const { x, y, color = "0xffff0b", zIndex } = props;
+  const { x, y, color = "0xffff0b", zIndex, onClick } = props;
 
   return (
     <Graphics
@@ -20,9 +20,9 @@ const MarkPoint = (props: {
         g.endFill();
       }}
       interactive={true}
-      pointerdown={(e) => {
+      mousedown={(e) => {
         e.stopPropagation();
-        console.log("mark", e);
+        onClick && onClick(e);
       }}
     />
   );
