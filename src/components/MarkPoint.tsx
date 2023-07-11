@@ -1,6 +1,6 @@
-import { Graphics } from "@pixi/react";
+import { Text } from "@pixi/react";
+import { COLORS } from "constants";
 import "@pixi/events";
-
 const MarkPoint = (props: {
   x: number;
   y: number;
@@ -8,17 +8,14 @@ const MarkPoint = (props: {
   zIndex: number;
   onClick?: (e: any) => void;
 }) => {
-  const { x, y, color = "0xffff0b", zIndex, onClick } = props;
+  const { x, y, zIndex, color = "yellow", onClick } = props;
 
   return (
-    <Graphics
+    <Text
+      text={COLORS[color]}
+      x={x}
+      y={y}
       zIndex={zIndex}
-      draw={(g) => {
-        g.clear();
-        g.beginFill(color);
-        g.drawCircle(x, y, 10);
-        g.endFill();
-      }}
       interactive={true}
       mousedown={(e) => {
         e.stopPropagation();

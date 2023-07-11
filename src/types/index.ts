@@ -1,3 +1,5 @@
+import { COLORS } from "constants";
+
 type Comment = {
   id?: string;
   username: string;
@@ -12,4 +14,13 @@ type Dialog = {
   comments: Comment[];
   color: string;
 };
-export type { Comment, Dialog };
+
+type Image = {
+  src: string;
+  id: string;
+  x: number;
+  y: number;
+};
+
+type ColorValue = typeof COLORS[keyof typeof COLORS];
+export type { Comment, Dialog, Image, ColorValue };

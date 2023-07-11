@@ -1,25 +1,25 @@
 import { useEffect, useRef, useState } from "react";
 import { Container, Sprite, Stage } from "@pixi/react";
+import {
+  CANVAS_HEIGHT,
+  CANVAS_WIDTH,
+  INITIAL_IMAGE,
+  INITIAL_UUID,
+  INITIAL_ZOOM,
+  ZOOM_SPEED,
+} from "constants";
 import { FederatedPointerEvent, Texture } from "pixi.js";
-import type { Dialog } from "types";
+import type { Dialog, Image } from "types";
 import { v4 as uuid } from "uuid";
 import "@pixi/events";
 import CommentsDialog from "components/CommentsDialog";
 import MarkPoint from "components/MarkPoint";
 import Panel from "components/Panel";
-import "index.css";
-
-// Constants
-const CANVAS_WIDTH = 1000;
-const CANVAS_HEIGHT = 800;
-const INITIAL_ZOOM = 1;
-const ZOOM_SPEED = 0.0001;
-const IMG_PATH =
-  "https://i.epochtimes.com/assets/uploads/2023/03/id13947271-2303030726001487.jpg";
-
-// Comment dialog component
 
 const App = () => {
+  const [images, setImages] = useState<Image[]>([
+    { src: INITIAL_IMAGE, x: 100, y: 100, id: INITIAL_UUID },
+  ]);
   const [zoom, setZoom] = useState(INITIAL_ZOOM);
   const [username, setUsername] = useState("Bob");
   const [userNameInput, setUserNameInput] = useState("");
@@ -35,7 +35,7 @@ const App = () => {
 
   const handleZoom = (e: React.WheelEvent<HTMLCanvasElement>) => {
     if (
-      zoom + e.deltaY * ZOOM_SPEED >= 0.5 ||
+      zoom + e.deltaY * ZOOM_SPEED >= 0.5 &&
       zoom + e.deltaY * ZOOM_SPEED <= 1.5
     )
       setZoom(zoom + e.deltaY * ZOOM_SPEED);
@@ -132,19 +132,22 @@ const App = () => {
               x={0}
               y={0}
               texture={Texture.WHITE}
-              width={CANVAS_WIDTH}
-              height={CANVAS_HEIGHT}
+              width={CANVAS_WIDTH * 1.5}
+              height={CANVAS_HEIGHT * 1.5}
               interactive
               onclick={handleAddMarkPoint}
               zIndex={0}
             />
-            <Sprite
-              image={IMG_PATH}
-              x={100}
-              y={100}
-              interactive={true}
-              pointerdown={handleAddMarkPoint}
-            />
+            {images.map(({ x, y, id, src }) => (
+              <Sprite
+                key={id}
+                image={src}
+                x={x}
+                y={y}
+                interactive={true}
+                pointerdown={handleAddMarkPoint}
+              />
+            ))}
             {dialogs.map((dialog, index) =>
               dialog.id === currentDialog?.id ? (
                 <></>
@@ -175,25 +178,29 @@ const App = () => {
           setDialogs={setDialogs}
           setCurrentDialog={setCurrentDialog}
           username={username}
+          zoom={zoom}
+          position={position}
         />
       )}
-      <Panel setPosition={setPosition} position={position} zoom={zoom} />
+      <div className="fixed top-0 bottom-0 bg-slate-300 shadow-md px-4">
+        <Panel setPosition={setPosition} zoom={zoom} />
 
-      <div>
-        <input
-          placeholder="username"
-          value={userNameInput}
-          onChange={(e) => setUserNameInput(e.target.value)}
-        />
-        <button
-          onClick={() => {
-            setUsername(userNameInput);
-            setUserNameInput("");
-          }}
-          disabled={!userNameInput}
-        >
-          Login
-        </button>
+        <div>
+          <input
+            placeholder="username"
+            value={userNameInput}
+            onChange={(e) => setUserNameInput(e.target.value)}
+          />
+          <button
+            onClick={() => {
+              setUsername(userNameInput);
+              setUserNameInput("");
+            }}
+            disabled={!userNameInput}
+          >
+            Login
+          </button>
+        </div>
       </div>
     </div>
   );
