@@ -10,7 +10,7 @@ const PanButton = (props: {
   const { onClick, Icon, col, row } = props;
   return (
     <div className={`row-start-${row} col-start-${col} aspect-square`}>
-      <button className="btn" onClick={onClick}>
+      <button className="btn w-full h-full" onClick={onClick}>
         <Icon size={36} />
       </button>
     </div>
@@ -71,7 +71,7 @@ const Panel = ({
   );
 
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <div className="grid grid-cols-3 w-[200px]">
       {directions.map((direction) => (
         <PanButton key={direction.row + "" + direction.col} {...direction} />
       ))}
