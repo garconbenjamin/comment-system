@@ -1,15 +1,27 @@
 import { Dispatch, SetStateAction, useMemo } from "react";
-import { FcDown, FcLeft, FcRefresh, FcRight, FcUp } from "react-icons/fc";
+import {
+  MdArrowBack,
+  MdArrowDownward,
+  MdArrowForward,
+  MdArrowUpward,
+  MdZoomInMap,
+} from "react-icons/md";
 
 const PanButton = (props: {
   row: number;
   col: number;
   onClick: () => void;
-  Icon: typeof FcDown;
+  Icon: typeof MdArrowBack;
 }) => {
   const { onClick, Icon, col, row } = props;
   return (
-    <div className={`row-start-${row} col-start-${col} aspect-square`}>
+    <div
+      className="aspect-square"
+      style={{
+        gridRowStart: row,
+        gridColumnStart: col,
+      }}
+    >
       <button className="btn w-full h-full" onClick={onClick}>
         <Icon size={36} />
       </button>
@@ -30,14 +42,14 @@ const Panel = ({
       {
         row: 1,
         col: 2,
-        Icon: FcUp,
+        Icon: MdArrowUpward,
         onClick: () =>
           setPosition((prev) => ({ ...prev, y: prev.y + 10 * zoom })),
       },
       {
         row: 2,
         col: 1,
-        Icon: FcLeft,
+        Icon: MdArrowBack,
         onClick: () => {
           setPosition((prev) => ({ ...prev, x: prev.x - 10 * zoom }));
         },
@@ -45,7 +57,7 @@ const Panel = ({
       {
         row: 2,
         col: 2,
-        Icon: FcRefresh,
+        Icon: MdZoomInMap,
         onClick: () => {
           setPosition({ x: 0, y: 0 });
         },
@@ -53,7 +65,7 @@ const Panel = ({
       {
         row: 2,
         col: 3,
-        Icon: FcRight,
+        Icon: MdArrowForward,
         onClick: () => {
           setPosition((prev) => ({ ...prev, x: prev.x + 10 * zoom }));
         },
@@ -61,7 +73,7 @@ const Panel = ({
       {
         row: 3,
         col: 2,
-        Icon: FcDown,
+        Icon: MdArrowDownward,
         onClick: () => {
           setPosition((prev) => ({ ...prev, y: prev.y - 10 * zoom }));
         },
@@ -71,7 +83,7 @@ const Panel = ({
   );
 
   return (
-    <div className="grid grid-cols-3 w-[200px]">
+    <div className="grid grid-cols-3">
       {directions.map((direction) => (
         <PanButton key={direction.row + "" + direction.col} {...direction} />
       ))}

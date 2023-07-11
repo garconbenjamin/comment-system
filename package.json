@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@pixi/react": "^7.1.0",
+    "lodash": "^4.17.21",
     "moment": "^2.29.4",
     "pixi.js": "^7.2.4",
     "react": "^18.2.0",
@@ -20,6 +21,7 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
+    "@types/lodash": "^4.14.195",
     "@types/react": "^18.0.37",
     "@types/react-dom": "^18.0.11",
     "@types/uuid": "^9.0.2",

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { MdChevronLeft, MdChevronRight } from "react-icons/md";
 import { Container, Sprite, Stage } from "@pixi/react";
 import {
   CANVAS_HEIGHT,
@@ -8,6 +9,7 @@ import {
   INITIAL_ZOOM,
   ZOOM_SPEED,
 } from "constants";
+import { throttle } from "lodash";
 import { FederatedPointerEvent, Texture } from "pixi.js";
 import type { Dialog, Image } from "types";
 import { v4 as uuid } from "uuid";
@@ -28,7 +30,9 @@ const App = () => {
   const [dialogs, setDialogs] = useState<Dialog[]>([]);
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [isPressingWhiteSpace, setIsPressingWhiteSpace] = useState(false);
-
+  const [width, setWidth] = useState(window.innerWidth);
+  const [height, setHeight] = useState(window.innerHeight);
+  const [showPanel, setShowPanel] = useState(true);
   const [currentDialog, setCurrentDialog] = useState<Dialog | null>(null);
   const mouseDownPositionRef = useRef(position);
   const prevPositionRef = useRef(position);
@@ -116,12 +120,23 @@ const App = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const handleResize = throttle(() => {
+      setWidth(window.innerWidth);
+      setHeight(window.innerHeight);
+    }, 300);
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
   return (
     <div>
-      <div className={`w-[${CANVAS_WIDTH}px] h-[${CANVAS_HEIGHT}px] relative`}>
+      <div className="relative" style={{ width, height }}>
         <Stage
-          width={CANVAS_WIDTH}
-          height={CANVAS_HEIGHT}
+          width={width}
+          height={height}
           onWheel={handleZoom}
           onMouseDown={handleMouseDown}
           onMouseUp={handleMouseUp}
@@ -132,8 +147,8 @@ const App = () => {
               x={0}
               y={0}
               texture={Texture.WHITE}
-              width={CANVAS_WIDTH * 1.5}
-              height={CANVAS_HEIGHT * 1.5}
+              width={CANVAS_WIDTH}
+              height={CANVAS_HEIGHT}
               interactive
               onclick={handleAddMarkPoint}
               zIndex={0}
@@ -182,24 +197,41 @@ const App = () => {
           position={position}
         />
       )}
-      <div className="fixed top-0 bottom-0 bg-slate-300 shadow-md px-4">
-        <Panel setPosition={setPosition} zoom={zoom} />
-
-        <div>
-          <input
-            placeholder="username"
-            value={userNameInput}
-            onChange={(e) => setUserNameInput(e.target.value)}
-          />
+      <div
+        className={
+          "transform transition fixed right-0 top-0 bottom-0 bg-slate-300 shadow-md ease-in-out duration-500 " +
+          (showPanel ? "translate-x-0" : "translate-x-full")
+        }
+      >
+        <div className="relative px-4">
           <button
-            onClick={() => {
-              setUsername(userNameInput);
-              setUserNameInput("");
-            }}
-            disabled={!userNameInput}
+            className="absolute top-4 left-0 transform -translate-x-full text-white p-3 bg-slate-500 hover:bg-slate-400 transition"
+            onClick={() => setShowPanel(!showPanel)}
           >
-            Login
+            {showPanel ? (
+              <MdChevronLeft size={30} />
+            ) : (
+              <MdChevronRight size={30} />
+            )}
           </button>
+          <Panel setPosition={setPosition} zoom={zoom} />
+
+          <div>
+            <input
+              placeholder="username"
+              value={userNameInput}
+              onChange={(e) => setUserNameInput(e.target.value)}
+            />
+            <button
+              onClick={() => {
+                setUsername(userNameInput);
+                setUserNameInput("");
+              }}
+              disabled={!userNameInput}
+            >
+              Login
+            </button>
+          </div>
         </div>
       </div>
     </div>

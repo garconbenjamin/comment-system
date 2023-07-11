@@ -57,54 +57,80 @@ const CommentsDialog = (props: {
   const handleClose = () => {
     setCurrentDialog(null);
   };
+  const handeResolve = () => {
+    setCurrentDialog(null);
+    setDialogs((dialogs) =>
+      dialogs.filter((dialog) => dialog.id !== currentDialog.id)
+    );
+  };
   return (
     <div
-      className="absolute bg-white rounded-lg overflow-hidden p-2 shadow-lg transform translate-x-12 -translate-y-1/2"
-      style={{ top: (y + position.y) * zoom, left: (x + position.x) * zoom }}
+      className="absolute bg-white rounded-lg overflow-hidden shadow-lg transform translate-x-12 -translate-y-1/2"
+      style={{
+        top: (y + position.y) * zoom,
+        left: (x + position.x) * zoom,
+        width: 350,
+      }}
     >
-      <div className="flex justify-between">
-        <div className="flex gap-x-1">
-          <div className="flex">
-            {Object.entries(COLORS).map(([key, value]) => (
-              <button
-                key={key}
-                onClick={() =>
-                  setCurrentDialog({
-                    ...currentDialog,
-                    color: key,
-                  })
-                }
-              >
-                {value}
-              </button>
-            ))}
-            <button className="btn bg-green-400 text-white px-2 py-1">
-              Resolve
+      <div className="flex items-center border-b border-gray-300 py-2 px-4 gap-x-2">
+        {Object.entries(COLORS).map(([key, value]) => (
+          <div className="flex justify-center items-center" key={key}>
+            {currentDialog.color === key && (
+              <div className="mb-px absolute rounded-full w-7 h-7 border-2 border-gray-200" />
+            )}
+            <button
+              className="text-lg "
+              onClick={() =>
+                setCurrentDialog({
+                  ...currentDialog,
+                  color: key,
+                })
+              }
+            >
+              {value}
             </button>
           </div>
-        </div>
-        <button onClick={handleClose}>
-          <MdClose color="black" />
+        ))}
+        {Boolean(comments.length) && (
+          <button
+            className="btn bg-green-400 text-white px-2 "
+            onClick={handeResolve}
+          >
+            Resolve
+          </button>
+        )}
+
+        <button onClick={handleClose} className="ml-auto">
+          <MdClose color="black" size={20} />
         </button>
       </div>
-      {comments.map((comment) => (
-        <div key={comment.id} className="">
-          <span>{comment.username}:</span>
-          <span>{comment.content}</span>
-          <span>{moment(comment.timestamp).format("YYYY/MM/DD")}</span>
-          <span>{moment(comment.timestamp).format("HH:mm:ss")}</span>
+      {Boolean(comments.length) && (
+        <div className="px-4 py-2 border-b border-gray-300">
+          {comments.map((comment) => (
+            <div key={comment.id} className="">
+              <span className="font-bold pr-2">{comment.username} :</span>
+              <span>{comment.content}</span>
+              <span>{moment(comment.timestamp).format("YYYY/MM/DD")}</span>
+              <span>{moment(comment.timestamp).format("HH:mm:ss")}</span>
+            </div>
+          ))}
         </div>
-      ))}
-      <div className="flex">
+      )}
+      <div className="flex px-4 py-2">
         <span className="font-bold pr-2">{username} :</span>
         <input
           type="text"
+          className="flex-1 border border-gray-300 rounded-md px-2"
           placeholder="Add a comment"
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
-        <button disabled={!text} onClick={sendComment}>
-          <MdSend color="black" />
+        <button
+          disabled={!text}
+          className="pl-2 text-blue-500"
+          onClick={sendComment}
+        >
+          <MdSend size={20} />
         </button>
       </div>
     </div>
