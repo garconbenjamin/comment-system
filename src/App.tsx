@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { MdChevronLeft, MdChevronRight } from "react-icons/md";
 import { Container, Sprite, Stage } from "@pixi/react";
 import {
   CANVAS_HEIGHT,
@@ -16,7 +15,7 @@ import { v4 as uuid } from "uuid";
 import "@pixi/events";
 import CommentsDialog from "components/CommentsDialog";
 import MarkPoint from "components/MarkPoint";
-import Panel from "components/Panel";
+import Panels from "components/Panels";
 
 const App = () => {
   const [images, setImages] = useState<Image[]>([
@@ -24,7 +23,7 @@ const App = () => {
   ]);
   const [zoom, setZoom] = useState(INITIAL_ZOOM);
   const [username, setUsername] = useState("Bob");
-  const [userNameInput, setUserNameInput] = useState("");
+
   const [position, setPosition] = useState({ x: 0, y: 0 });
 
   const [dialogs, setDialogs] = useState<Dialog[]>([]);
@@ -32,7 +31,6 @@ const App = () => {
   const [isPressingWhiteSpace, setIsPressingWhiteSpace] = useState(false);
   const [width, setWidth] = useState(window.innerWidth);
   const [height, setHeight] = useState(window.innerHeight);
-  const [showPanel, setShowPanel] = useState(true);
   const [currentDialog, setCurrentDialog] = useState<Dialog | null>(null);
   const mouseDownPositionRef = useRef(position);
   const prevPositionRef = useRef(position);
@@ -197,43 +195,7 @@ const App = () => {
           position={position}
         />
       )}
-      <div
-        className={
-          "transform transition fixed right-0 top-0 bottom-0 bg-slate-300 shadow-md ease-in-out duration-500 " +
-          (showPanel ? "translate-x-0" : "translate-x-full")
-        }
-      >
-        <div className="relative px-4">
-          <button
-            className="absolute top-4 left-0 transform -translate-x-full text-white p-3 bg-slate-500 hover:bg-slate-400 transition"
-            onClick={() => setShowPanel(!showPanel)}
-          >
-            {showPanel ? (
-              <MdChevronLeft size={30} />
-            ) : (
-              <MdChevronRight size={30} />
-            )}
-          </button>
-          <Panel setPosition={setPosition} zoom={zoom} />
-
-          <div>
-            <input
-              placeholder="username"
-              value={userNameInput}
-              onChange={(e) => setUserNameInput(e.target.value)}
-            />
-            <button
-              onClick={() => {
-                setUsername(userNameInput);
-                setUserNameInput("");
-              }}
-              disabled={!userNameInput}
-            >
-              Login
-            </button>
-          </div>
-        </div>
-      </div>
+      <Panels setPosition={setPosition} zoom={zoom} setUsername={setUsername} />
     </div>
   );
 };
