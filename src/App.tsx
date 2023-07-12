@@ -6,6 +6,7 @@ import {
   INITIAL_IMAGE,
   INITIAL_UUID,
   INITIAL_ZOOM,
+  MARKPOINT_SIZE,
   ZOOM_SPEED,
 } from "constants";
 import { throttle } from "lodash";
@@ -80,8 +81,8 @@ const App = () => {
       const id = uuid();
       const dialog = {
         id,
-        x: clientX / zoom - position.x,
-        y: clientY / zoom - position.y,
+        x: (clientX - position.x - MARKPOINT_SIZE / 2) / zoom,
+        y: (clientY - position.y - MARKPOINT_SIZE / 2) / zoom,
         comments: [],
         color: "yellow",
       };
@@ -130,12 +131,12 @@ const App = () => {
     };
   }, []);
   return (
-    <div>
-      <div className="relative" style={{ width, height }}>
+    <div className="overflow-hidden relative" style={{ width, height }}>
+      <div>
         <Stage
           width={width}
           height={height}
-          onWheel={handleZoom}
+          onWheel={throttle(handleZoom, 500)}
           onMouseDown={handleMouseDown}
           onMouseUp={handleMouseUp}
           onMouseMove={handleMouseMove}

@@ -67,8 +67,8 @@ const CommentsDialog = (props: {
     <div
       className="absolute bg-white rounded-lg overflow-hidden shadow-lg transform translate-x-12 -translate-y-1/2"
       style={{
-        top: (y + position.y) * zoom,
-        left: (x + position.x) * zoom,
+        top: position.y + y * zoom,
+        left: position.x + x * zoom,
         width: 350,
       }}
     >
