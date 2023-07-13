@@ -38,21 +38,21 @@ const CommentsDialog = (props: {
     const id = uuid();
     const newComment = {
       content: text,
-      username,
+      username: username || "Guest",
       timestamp: moment().toString(),
       id,
     };
-    setDialogs((dialogs) => {
-      const targetDialog = dialogs.find(
-        (dialog) => dialog.id === currentDialog.id
-      );
-      if (targetDialog) {
-        targetDialog.comments = [...targetDialog.comments, newComment];
-        return dialogs;
-      } else {
-        return [...dialogs, { ...currentDialog, comments: [newComment] }];
-      }
-    });
+    setDialogs((dialogs) =>
+      dialogs.map((dialog) => {
+        if (dialog.id === currentDialog.id) {
+          return {
+            ...dialog,
+            comments: [...dialog.comments, newComment],
+          };
+        }
+        return dialog;
+      })
+    );
 
     setText("");
   };
