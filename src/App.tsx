@@ -31,8 +31,15 @@ const App = () => {
   const [width, setWidth] = useState(window.innerWidth);
   const [height, setHeight] = useState(window.innerHeight);
   const [currentDialogId, setCurrentDialogId] = useState<string | null>(null);
+  const [enableDragImage, setEnableDragImage] = useState(false);
+
   const mouseDownPositionRef = useRef(position);
   const prevPositionRef = useRef(position);
+  const imagePositionRef = useRef<{ x: number; y: number }>();
+  const dialogsRef = useRef(dialogs);
+
+  const enableDrag = isMouseDown && isPressingWhiteSpace;
+  const currentDialog = dialogs.find((dialog) => dialog.id === currentDialogId);
 
   const handleZoom = (e: React.WheelEvent<HTMLCanvasElement>) => {
     if (
@@ -41,6 +48,7 @@ const App = () => {
     )
       setZoom(zoom + e.deltaY * ZOOM_SPEED);
   };
+
   const handleMouseDown = (
     e: React.MouseEvent<HTMLCanvasElement, MouseEvent>
   ) => {
@@ -50,6 +58,7 @@ const App = () => {
     };
     setIsMouseDown(true);
   };
+
   const handleMouseMove = (
     e: React.MouseEvent<HTMLCanvasElement, MouseEvent>
   ) => {
@@ -66,6 +75,7 @@ const App = () => {
       });
     }
   };
+
   const handleMouseUp = () => {
     setIsMouseDown(false);
     mouseDownPositionRef.current = position;
@@ -97,7 +107,6 @@ const App = () => {
       });
     }
   };
-  const enableDrag = isMouseDown && isPressingWhiteSpace;
 
   const handleDialogOpen = (
     e: React.MouseEvent<HTMLDivElement, MouseEvent>,
@@ -107,27 +116,17 @@ const App = () => {
     setCurrentDialogId(dialogId);
   };
 
-  const currentDialog = dialogs.find((dialog) => dialog.id === currentDialogId);
-
-  useEffect(() => {
-    const handlePressWhiteSpace = (e: KeyboardEvent) => {
-      if (e.code === "Space") {
-        setIsPressingWhiteSpace(true);
-      }
-    };
-    const handleLeaveWhiteSpace = (e: KeyboardEvent) => {
-      if (e.code === "Space") {
-        setIsPressingWhiteSpace(false);
-      }
-    };
-    window.addEventListener("keydown", handlePressWhiteSpace);
-    window.addEventListener("keyup", handleLeaveWhiteSpace);
-
-    return () => {
-      window.removeEventListener("keydown", handlePressWhiteSpace);
-      window.removeEventListener("keyup", handleLeaveWhiteSpace);
-    };
-  }, []);
+  const handleImagePointerDown = (
+    e: FederatedPointerEvent,
+    { id, x, y }: Pick<Image, "x" | "y" | "id">
+  ) => {
+    if (enableDragImage) {
+      imagePositionRef.current = { x, y };
+      dialogsRef.current = JSON.parse(JSON.stringify(dialogs));
+    } else {
+      handleAddMarkPoint(e, id);
+    }
+  };
 
   useEffect(() => {
     const handleResize = throttle(() => {
@@ -151,6 +150,27 @@ const App = () => {
       });
     }
   }, [currentDialog, setDialogs]);
+
+  useEffect(() => {
+    const handlePressWhiteSpace = (e: KeyboardEvent) => {
+      if (e.code === "Space") {
+        setIsPressingWhiteSpace(true);
+      }
+    };
+    const handleLeaveWhiteSpace = (e: KeyboardEvent) => {
+      if (e.code === "Space") {
+        setIsPressingWhiteSpace(false);
+      }
+    };
+    window.addEventListener("keydown", handlePressWhiteSpace);
+    window.addEventListener("keyup", handleLeaveWhiteSpace);
+
+    return () => {
+      window.removeEventListener("keydown", handlePressWhiteSpace);
+      window.removeEventListener("keyup", handleLeaveWhiteSpace);
+    };
+  }, []);
+
   return (
     <div className="overflow-hidden relative" style={{ width, height }}>
       <div>
@@ -170,7 +190,7 @@ const App = () => {
               width={CANVAS_WIDTH}
               height={CANVAS_HEIGHT}
               interactive
-              onclick={handleAddMarkPoint}
+              onclick={(e) => !enableDragImage && handleAddMarkPoint(e)}
               zIndex={0}
             />
             {images.map(({ x, y, id, src }) => (
@@ -180,7 +200,43 @@ const App = () => {
                 x={x}
                 y={y}
                 interactive={true}
-                pointerdown={(e) => handleAddMarkPoint(e, id)}
+                pointerdown={(e) => handleImagePointerDown(e, { x, y, id })}
+                pointermove={(e) => {
+                  if (enableDragImage && isMouseDown) {
+                    const { clientX, clientY } = e;
+
+                    const deltaX =
+                      (clientX - mouseDownPositionRef.current.x) * zoom;
+                    const deltaY =
+                      (clientY - mouseDownPositionRef.current.y) * zoom;
+                    setImages(
+                      images.map((image) => {
+                        if (image.id === id) {
+                          image.x =
+                            (imagePositionRef?.current?.x ?? image.x) + deltaX;
+                          image.y =
+                            (imagePositionRef?.current?.y ?? image.x) + deltaY;
+                        }
+                        return image;
+                      })
+                    );
+                    setDialogs(
+                      dialogs.map((dialog, i) => {
+                        if (dialog.imageId === id) {
+                          dialog.x =
+                            dialogsRef?.current[i].x * zoom +
+                            (clientX - mouseDownPositionRef.current.x);
+
+                          dialog.y =
+                            dialogsRef?.current[i].y * zoom +
+                            (clientY - mouseDownPositionRef.current.y);
+                        }
+
+                        return dialog;
+                      })
+                    );
+                  }
+                }}
               />
             ))}
             {dialogs.map((dialog, index) => (
@@ -213,7 +269,13 @@ const App = () => {
           position={position}
         />
       )}
-      <Panels setPosition={setPosition} zoom={zoom} setUsername={setUsername} />
+      <Panels
+        enableDragImage={enableDragImage}
+        setEnableDragImage={setEnableDragImage}
+        setPosition={setPosition}
+        zoom={zoom}
+        setUsername={setUsername}
+      />
     </div>
   );
 };

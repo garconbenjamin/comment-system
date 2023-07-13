@@ -63,11 +63,11 @@ const CommentsDialog = (props: {
   }, [currentDialog.id, setDialogs]);
   const handleClose = () => {
     setCurrentDialogId(null);
-    if (comments.length) {
+    if (comments.length === 0) {
       removeCurrentDialog();
     }
   };
-  const handeResolve = () => {
+  const handleResolve = () => {
     setCurrentDialogId(null);
     removeCurrentDialog();
   };
@@ -79,6 +79,7 @@ const CommentsDialog = (props: {
       ),
     [comments]
   );
+
   useEffect(() => {
     setText("");
   }, [currentDialog.id]);
@@ -120,7 +121,7 @@ const CommentsDialog = (props: {
 
           <button
             className="btn bg-green-400 text-white px-2 "
-            onClick={handeResolve}
+            onClick={handleResolve}
             disabled={!comments.length}
           >
             Resolve

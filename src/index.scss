@@ -15,8 +15,13 @@
 @layer components {
   .btn {
     @apply rounded-lg transition flex items-center justify-center shadow-sm;
-    &:hover {
-      @apply shadow-lg;
+    &:not(:disabled) {
+      &:hover {
+        @apply shadow-lg;
+      }
+      &:active {
+        @apply filter brightness-95;
+      }
     }
   }
 }
