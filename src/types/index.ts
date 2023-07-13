@@ -13,6 +13,7 @@ type Dialog = {
   id: string;
   comments: Comment[];
   color: string;
+  imageId?: string;
 };
 
 type Image = {

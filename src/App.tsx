@@ -24,15 +24,13 @@ const App = () => {
   ]);
   const [zoom, setZoom] = useState(INITIAL_ZOOM);
   const [username, setUsername] = useState("Bob");
-
   const [position, setPosition] = useState({ x: 0, y: 0 });
-
   const [dialogs, setDialogs] = useState<Dialog[]>([]);
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [isPressingWhiteSpace, setIsPressingWhiteSpace] = useState(false);
   const [width, setWidth] = useState(window.innerWidth);
   const [height, setHeight] = useState(window.innerHeight);
-  const [currentDialog, setCurrentDialog] = useState<Dialog | null>(null);
+  const [currentDialogId, setCurrentDialogId] = useState<string | null>(null);
   const mouseDownPositionRef = useRef(position);
   const prevPositionRef = useRef(position);
 
@@ -74,7 +72,10 @@ const App = () => {
     prevPositionRef.current = position;
   };
 
-  const handleAddMarkPoint = (event: FederatedPointerEvent) => {
+  const handleAddMarkPoint = (
+    event: FederatedPointerEvent,
+    imageId?: string
+  ) => {
     if (!isPressingWhiteSpace) {
       event.stopPropagation();
       const { clientX, clientY } = event;
@@ -85,19 +86,23 @@ const App = () => {
         y: (clientY - position.y - MARKPOINT_SIZE / 2) / zoom,
         comments: [],
         color: "yellow",
+        imageId,
       };
-      setCurrentDialog(dialog);
+      setCurrentDialogId(id);
+      setDialogs((prev) => [...prev, dialog]);
     }
   };
   const enableDrag = isMouseDown && isPressingWhiteSpace;
 
   const handleDialogOpen = (
     e: React.MouseEvent<HTMLDivElement, MouseEvent>,
-    dialog: Dialog
+    dialogId: string
   ) => {
     e.stopPropagation();
-    setCurrentDialog(dialog);
+    setCurrentDialogId(dialogId);
   };
+
+  const currentDialog = dialogs.find((dialog) => dialog.id === currentDialogId);
 
   useEffect(() => {
     const handlePressWhiteSpace = (e: KeyboardEvent) => {
@@ -159,23 +164,19 @@ const App = () => {
                 x={x}
                 y={y}
                 interactive={true}
-                pointerdown={handleAddMarkPoint}
+                pointerdown={(e) => handleAddMarkPoint(e, id)}
               />
             ))}
-            {dialogs.map((dialog, index) =>
-              dialog.id === currentDialog?.id ? (
-                <></>
-              ) : (
-                <MarkPoint
-                  key={dialog.id}
-                  x={dialog.x}
-                  y={dialog.y}
-                  zIndex={index + 3}
-                  color={dialog.color}
-                  onClick={(e) => handleDialogOpen(e, dialog)}
-                />
-              )
-            )}
+            {dialogs.map((dialog, index) => (
+              <MarkPoint
+                key={dialog.id}
+                x={dialog.x}
+                y={dialog.y}
+                zIndex={index + 3}
+                color={dialog.color}
+                onClick={(e) => handleDialogOpen(e, dialog.id)}
+              />
+            ))}
             {currentDialog && (
               <MarkPoint
                 key={currentDialog.id}
@@ -190,7 +191,7 @@ const App = () => {
         <CommentsDialog
           currentDialog={currentDialog}
           setDialogs={setDialogs}
-          setCurrentDialog={setCurrentDialog}
+          setCurrentDialogId={setCurrentDialogId}
           username={username}
           zoom={zoom}
           position={position}
