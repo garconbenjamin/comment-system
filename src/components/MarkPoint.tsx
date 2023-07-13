@@ -12,7 +12,7 @@ const MarkPoint = (props: {
   zIndex: number;
   onClick?: (e: any) => void;
 }) => {
-  const { x, y, zIndex, color = "yellow", onClick } = props;
+  const { x, y, zIndex, color = "yellow", onClick = () => null } = props;
 
   return (
     <Text
@@ -24,7 +24,7 @@ const MarkPoint = (props: {
       interactive={true}
       mousedown={(e) => {
         e.stopPropagation();
-        onClick && onClick(e);
+        onClick(e);
       }}
     />
   );

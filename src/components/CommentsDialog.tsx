@@ -2,6 +2,7 @@ import {
   Dispatch,
   SetStateAction,
   useCallback,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -78,6 +79,9 @@ const CommentsDialog = (props: {
       ),
     [comments]
   );
+  useEffect(() => {
+    setText("");
+  }, [currentDialog.id]);
 
   return (
     <div

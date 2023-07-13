@@ -89,7 +89,12 @@ const App = () => {
         imageId,
       };
       setCurrentDialogId(id);
-      setDialogs((prev) => [...prev, dialog]);
+      setDialogs((prev) => {
+        if (prev.length > 0 && prev[prev.length - 1]?.comments.length === 0) {
+          prev.pop();
+        }
+        return [...prev, dialog];
+      });
     }
   };
   const enableDrag = isMouseDown && isPressingWhiteSpace;
@@ -135,6 +140,17 @@ const App = () => {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
+
+  useEffect(() => {
+    if (!currentDialog) {
+      setDialogs((prev) => {
+        if (prev.length > 0 && prev[prev.length - 1]?.comments.length === 0) {
+          prev.pop();
+        }
+        return [...prev];
+      });
+    }
+  }, [currentDialog, setDialogs]);
   return (
     <div className="overflow-hidden relative" style={{ width, height }}>
       <div>
