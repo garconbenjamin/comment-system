@@ -1,18 +1,27 @@
-import { useRef } from "react";
+import { Dispatch, SetStateAction, useRef } from "react";
 import { InteractionData, InteractionEvent } from "@pixi/interaction";
 import { DisplayObject } from "pixi.js";
+import type { Image } from "types";
 import "@pixi/events";
 
 interface Draggable extends DisplayObject {
-  data: InteractionData | null;
+  data:
+    | (InteractionData & {
+        imageId?: string;
+      })
+    | null;
   dragging: boolean;
 }
 
-const useSpriteDrag = () => {
+const useSpriteDrag = ({
+  setImages,
+}: {
+  setImages: Dispatch<SetStateAction<Image[]>>;
+}) => {
   const pointerLocalX = useRef(0);
   const pointerLocalY = useRef(0);
 
-  const onDragStart = (event: InteractionEvent) => {
+  const onDragStart = (event: InteractionEvent, id: string) => {
     const sprite = event.currentTarget as Draggable;
     const localPos = event.data.getLocalPosition(sprite);
 
@@ -21,13 +30,29 @@ const useSpriteDrag = () => {
 
     sprite.alpha = 0.5;
     sprite.data = event.data;
+    sprite.data.imageId = id;
+
     sprite.dragging = true;
   };
 
   const onDragEnd = (event: InteractionEvent) => {
     const sprite = event.currentTarget as Draggable;
+
     sprite.alpha = 1;
     sprite.dragging = false;
+    const { imageId } = sprite.data || {};
+
+    if (imageId) {
+      setImages((prev) =>
+        prev.map((image) => {
+          if (image.id === imageId) {
+            image.x = sprite.x;
+            image.y = sprite.y;
+          }
+          return image;
+        })
+      );
+    }
     sprite.data = null;
     pointerLocalX.current = 0;
     pointerLocalY.current = 0;

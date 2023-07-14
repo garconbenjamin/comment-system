@@ -235,7 +235,7 @@ const App = () => {
                 y={y}
                 anchor={0.5}
                 interactive
-                pointerdown={handlers.onDragStart}
+                pointerdown={(e) => handlers.onDragStart(e, id)}
                 pointerup={handlers.onDragEnd}
                 pointerupoutside={handlers.onDragEnd}
                 pointermove={handlers.onDragMove}
