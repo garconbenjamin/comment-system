@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@pixi/filter-drop-shadow": "^5.2.0",
+    "@pixi/interaction": "^6.5.10",
     "@pixi/react": "^7.1.0",
     "lodash": "^4.17.21",
     "moment": "^2.29.4",

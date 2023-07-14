@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { DropShadowFilter } from "@pixi/filter-drop-shadow";
+import { InteractionData, InteractionEvent } from "@pixi/interaction";
 import { Container, Sprite, Stage, withFilters } from "@pixi/react";
+import useSpriteDrag from "hooks/useSpriteDrag";
 import { throttle } from "lodash";
-import { FederatedPointerEvent, Texture } from "pixi.js";
+import { DisplayObject, FederatedPointerEvent, Texture } from "pixi.js";
 import type { Dialog, Image } from "types";
 import { v4 as uuid } from "uuid";
 import "@pixi/events";
@@ -20,7 +22,7 @@ import {
   MARKPOINT_SIZE,
   ZOOM_SPEED,
 } from "constant";
-
+import cover from "images/cover.jpg";
 const ShadowFilter = withFilters(Container, { shadow: DropShadowFilter });
 
 const App = () => {
@@ -31,7 +33,7 @@ const App = () => {
 
   // Canvas
   const [zoom, setZoom] = useState(INITIAL_ZOOM);
-  const [position, setPosition] = useState(INITIAL_POSITION);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
   const [width, setWidth] = useState(window.innerWidth);
   const [height, setHeight] = useState(window.innerHeight);
 
@@ -49,6 +51,8 @@ const App = () => {
 
   const enableMoveArtboard = isMouseDown && isPressingWhiteSpace;
   const currentDialog = dialogs.find((dialog) => dialog.id === currentDialogId);
+
+  const { handlers } = useSpriteDrag();
 
   const handleStageZoom = (e: React.WheelEvent<HTMLCanvasElement>) => {
     if (
@@ -123,19 +127,6 @@ const App = () => {
   ) => {
     e.stopPropagation();
     setCurrentDialogId(dialogId);
-  };
-
-  const handleImagePointerDown = (
-    e: FederatedPointerEvent,
-    { id, x, y }: Pick<Image, "x" | "y" | "id">
-  ) => {
-    if (enableDragImage) {
-      imagePositionRef.current = { x, y };
-      setDraggingImageId(id);
-      dialogsRef.current = JSON.parse(JSON.stringify(dialogs));
-    } else {
-      handleAddMarkPoint(e, id);
-    }
   };
 
   const handleImagePointerMove = (e: FederatedPointerEvent, id: string) => {
@@ -226,34 +217,31 @@ const App = () => {
               <Sprite
                 x={0}
                 y={0}
+                anchor={0.5}
                 texture={Texture.WHITE}
                 width={ARTBOARD_WIDTH}
                 height={ARTBOARD_HEIGHT}
                 interactive
-                onclick={(e) => !enableDragImage && handleAddMarkPoint(e)}
+                // onclick={(e) => !enableDragImage && handleAddMarkPoint(e)}
                 zIndex={0}
               />
             </ShadowFilter>
+
             {images.map(({ x, y, id, src }) => (
               <Sprite
                 key={id}
                 image={src}
                 x={x}
                 y={y}
-                interactive={
-                  !enableDragImage
-                    ? true
-                    : !isMouseDown
-                    ? true
-                    : id === draggingImageId
-                    ? true
-                    : false
-                }
-                pointerdown={(e) => handleImagePointerDown(e, { x, y, id })}
-                pointermove={(e) => handleImagePointerMove(e, id)}
+                anchor={0.5}
+                interactive
+                pointerdown={handlers.onDragStart}
+                pointerup={handlers.onDragEnd}
+                pointerupoutside={handlers.onDragEnd}
+                pointermove={handlers.onDragMove}
               />
             ))}
-            {dialogs.map((dialog, index) => (
+            {/* {dialogs.map((dialog, index) => (
               <MarkPoint
                 key={dialog.id}
                 x={dialog.x}
@@ -262,14 +250,14 @@ const App = () => {
                 color={dialog.color}
                 onClick={(e) => handleDialogOpen(e, dialog.id)}
               />
-            ))}
-            {currentDialog && (
+            ))} */}
+            {/* {currentDialog && (
               <MarkPoint
                 key={currentDialog.id}
                 {...currentDialog}
                 zIndex={dialogs.length + 1}
               />
-            )}
+            )} */}
           </Container>
         </Stage>
       </div>
