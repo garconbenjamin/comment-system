@@ -7,17 +7,28 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest",
+    "coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@pixi/filter-drop-shadow": "^5.2.0",
     "@pixi/react": "^7.1.0",
+    "lodash": "^4.17.21",
+    "moment": "^2.29.4",
     "pixi.js": "^7.2.4",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-icons": "^4.10.1",
+    "sass": "^1.63.6",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
+    "@testing-library/react": "^14.0.0",
+    "@types/lodash": "^4.14.195",
     "@types/react": "^18.0.37",
     "@types/react-dom": "^18.0.11",
+    "@types/uuid": "^9.0.2",
     "@typescript-eslint/eslint-plugin": "^5.59.0",
     "@typescript-eslint/parser": "^5.59.0",
     "@vitejs/plugin-react": "^4.0.0",
@@ -27,9 +38,12 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.3.4",
     "eslint-plugin-simple-import-sort": "^10.0.0",
+    "happy-dom": "^10.3.2",
     "postcss": "^8.4.24",
     "tailwindcss": "^3.3.2",
     "typescript": "^5.0.2",
-    "vite": "^4.3.9"
+    "vite": "^4.3.9",
+    "vite-tsconfig-paths": "^4.2.0",
+    "vitest": "^0.33.0"
   }
 }

@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer {
+  button {
+    &:hover {
+      @apply cursor-pointer;
+    }
+    &:disabled {
+      @apply opacity-50 cursor-not-allowed;
+    }
+  }
+}
+@layer components {
+  .btn {
+    @apply rounded-lg transition flex items-center justify-center shadow-sm;
+    &:not(:disabled) {
+      &:hover {
+        @apply shadow-lg;
+      }
+      &:active {
+        @apply filter brightness-95;
+      }
+    }
+  }
+}
