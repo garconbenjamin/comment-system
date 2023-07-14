@@ -7,6 +7,7 @@ import type { Dialog, Image } from "types";
 import { v4 as uuid } from "uuid";
 import "@pixi/events";
 import CommentsDialog from "components/CommentsDialog";
+import Instructions from "components/Instructions";
 import MarkPoint from "components/MarkPoint";
 import Panels from "components/Panels";
 import {
@@ -290,6 +291,7 @@ const App = () => {
         username={username}
         setUsername={setUsername}
       />
+      <Instructions />
     </div>
   );
 };
