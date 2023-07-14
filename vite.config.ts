@@ -8,8 +8,6 @@ export default defineConfig(({ command }) => {
     globals: true,
     environment: "happy-dom",
   };
-  if (command !== "serve") {
-    config.base = "/comment-system/";
-  }
+
   return config;
 });
