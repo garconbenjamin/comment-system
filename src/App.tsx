@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { Container, Sprite, Stage } from "@pixi/react";
+import { DropShadowFilter } from "@pixi/filter-drop-shadow";
+import { Container, Sprite, Stage, withFilters } from "@pixi/react";
 import {
   ARTBOARD_HEIGHT,
   ARTBOARD_WIDTH,
   INITIAL_IMAGES,
+  INITIAL_POSITION,
   INITIAL_USER,
   INITIAL_ZOOM,
   MARKPOINT_SIZE,
@@ -18,15 +20,17 @@ import CommentsDialog from "components/CommentsDialog";
 import MarkPoint from "components/MarkPoint";
 import Panels from "components/Panels";
 
+const ShadowFilter = withFilters(Container, { shadow: DropShadowFilter });
+
 const App = () => {
-  // Cotent
+  // Content
   const [images, setImages] = useState<Image[]>(INITIAL_IMAGES);
   const [username, setUsername] = useState(INITIAL_USER);
   const [dialogs, setDialogs] = useState<Dialog[]>([]);
 
   // Canvas
   const [zoom, setZoom] = useState(INITIAL_ZOOM);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [position, setPosition] = useState(INITIAL_POSITION);
   const [width, setWidth] = useState(window.innerWidth);
   const [height, setHeight] = useState(window.innerHeight);
 
@@ -173,10 +177,23 @@ const App = () => {
       setWidth(window.innerWidth);
       setHeight(window.innerHeight);
     }, 300);
+    const handlePressWhiteSpace = (e: KeyboardEvent) => {
+      if (e.code === "Space") {
+        setIsPressingWhiteSpace(true);
+      }
+    };
+    const handleLeaveWhiteSpace = (e: KeyboardEvent) => {
+      if (e.code === "Space") {
+        setIsPressingWhiteSpace(false);
+      }
+    };
     window.addEventListener("resize", handleResize);
-
+    window.addEventListener("keydown", handlePressWhiteSpace);
+    window.addEventListener("keyup", handleLeaveWhiteSpace);
     return () => {
       window.removeEventListener("resize", handleResize);
+      window.removeEventListener("keydown", handlePressWhiteSpace);
+      window.removeEventListener("keyup", handleLeaveWhiteSpace);
     };
   }, []);
 
@@ -191,26 +208,6 @@ const App = () => {
     }
   }, [currentDialog, setDialogs]);
 
-  useEffect(() => {
-    const handlePressWhiteSpace = (e: KeyboardEvent) => {
-      if (e.code === "Space") {
-        setIsPressingWhiteSpace(true);
-      }
-    };
-    const handleLeaveWhiteSpace = (e: KeyboardEvent) => {
-      if (e.code === "Space") {
-        setIsPressingWhiteSpace(false);
-      }
-    };
-    window.addEventListener("keydown", handlePressWhiteSpace);
-    window.addEventListener("keyup", handleLeaveWhiteSpace);
-
-    return () => {
-      window.removeEventListener("keydown", handlePressWhiteSpace);
-      window.removeEventListener("keyup", handleLeaveWhiteSpace);
-    };
-  }, []);
-
   return (
     <div className="overflow-hidden relative" style={{ width, height }}>
       <div>
@@ -224,16 +221,18 @@ const App = () => {
           onMouseMove={handleStageMouseMove}
         >
           <Container position={position} scale={{ x: zoom, y: zoom }}>
-            <Sprite
-              x={0}
-              y={0}
-              texture={Texture.WHITE}
-              width={ARTBOARD_WIDTH}
-              height={ARTBOARD_HEIGHT}
-              interactive
-              onclick={(e) => !enableDragImage && handleAddMarkPoint(e)}
-              zIndex={0}
-            />
+            <ShadowFilter>
+              <Sprite
+                x={0}
+                y={0}
+                texture={Texture.WHITE}
+                width={ARTBOARD_WIDTH}
+                height={ARTBOARD_HEIGHT}
+                interactive
+                onclick={(e) => !enableDragImage && handleAddMarkPoint(e)}
+                zIndex={0}
+              />
+            </ShadowFilter>
             {images.map(({ x, y, id, src }) => (
               <Sprite
                 key={id}

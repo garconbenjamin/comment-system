@@ -1,5 +1,9 @@
 const ARTBOARD_WIDTH = 800;
 const ARTBOARD_HEIGHT = 1000;
+const INITIAL_POSITION = {
+  x: (window.innerWidth - ARTBOARD_WIDTH) / 2,
+  y: (window.innerHeight - ARTBOARD_HEIGHT) / 2,
+};
 const INITIAL_ZOOM = 1;
 const ZOOM_SPEED = 0.0001;
 
@@ -64,4 +68,5 @@ export {
   ZOOM_SPEED,
   INITIAL_IMAGES,
   MARKPOINT_SIZE,
+  INITIAL_POSITION,
 };

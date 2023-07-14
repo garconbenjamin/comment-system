@@ -6,6 +6,7 @@ import {
   MdArrowUpward,
   MdZoomInMap,
 } from "react-icons/md";
+import { INITIAL_POSITION } from "constants";
 import { PanelsProps } from "./types";
 
 type PanButtonProps = {
@@ -58,7 +59,7 @@ const MovingPanel = ({
         col: 2,
         Icon: MdZoomInMap,
         onClick: () => {
-          setPosition({ x: 0, y: 0 });
+          setPosition(INITIAL_POSITION);
         },
       },
       {
