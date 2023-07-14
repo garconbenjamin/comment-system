@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { DropShadowFilter } from "@pixi/filter-drop-shadow";
 import { Container, Sprite, Stage, withFilters } from "@pixi/react";
+import { throttle } from "lodash";
+import { FederatedPointerEvent, Texture } from "pixi.js";
+import type { Dialog, Image } from "types";
+import { v4 as uuid } from "uuid";
+import "@pixi/events";
+import CommentsDialog from "components/CommentsDialog";
+import MarkPoint from "components/MarkPoint";
+import Panels from "components/Panels";
 import {
   ARTBOARD_HEIGHT,
   ARTBOARD_WIDTH,
@@ -10,15 +18,7 @@ import {
   INITIAL_ZOOM,
   MARKPOINT_SIZE,
   ZOOM_SPEED,
-} from "constants";
-import { throttle } from "lodash";
-import { FederatedPointerEvent, Texture } from "pixi.js";
-import type { Dialog, Image } from "types";
-import { v4 as uuid } from "uuid";
-import "@pixi/events";
-import CommentsDialog from "components/CommentsDialog";
-import MarkPoint from "components/MarkPoint";
-import Panels from "components/Panels";
+} from "constant";
 
 const ShadowFilter = withFilters(Container, { shadow: DropShadowFilter });
 

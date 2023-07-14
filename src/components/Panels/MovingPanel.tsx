@@ -6,7 +6,7 @@ import {
   MdArrowUpward,
   MdZoomInMap,
 } from "react-icons/md";
-import { INITIAL_POSITION } from "constants";
+import { INITIAL_POSITION } from "constant";
 import { PanelsProps } from "./types";
 
 type PanButtonProps = {

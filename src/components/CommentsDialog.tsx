@@ -7,11 +7,11 @@ import {
   useState,
 } from "react";
 import { MdClose, MdSend } from "react-icons/md";
-import { COLORS } from "constants";
 import { groupBy } from "lodash";
 import moment from "moment";
 import type { Dialog } from "types";
 import { v4 as uuid } from "uuid";
+import { COLORS } from "constant";
 const Tip = () => (
   <div className="w-4 h-4 bg-white absolute top-1/2 -left-2 transform rotate-45 shadow-lg" />
 );

@@ -1,8 +1,7 @@
 import { Text } from "@pixi/react";
-import { COLORS } from "constants";
-import { MARKPOINT_SIZE } from "constants";
 import { TextStyle } from "pixi.js";
 import "@pixi/events";
+import { COLORS, MARKPOINT_SIZE } from "constant";
 
 const style = new TextStyle({ fontSize: MARKPOINT_SIZE });
 const MarkPoint = (props: {
