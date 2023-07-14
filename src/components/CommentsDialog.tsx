@@ -94,7 +94,7 @@ const CommentsDialog = (props: {
       }}
     >
       <Tip />
-      <div className="relative overflow-hidden bg-white rounded-lg shadow-lg">
+      <div className="overflow-hidden bg-white rounded-lg shadow-lg">
         <div className="flex items-center border-b border-gray-300 py-2 px-4 gap-x-2">
           {Object.entries(COLORS).map(([key, value]) => (
             <div className="flex justify-center items-center" key={key}>
@@ -143,19 +143,18 @@ const CommentsDialog = (props: {
                     ? moment(date).format("YYYY/MM/DD")
                     : "Today"}
                 </div>
-                <div className=" ">
-                  {comments.map((comment) => (
-                    <div key={comment.id} className="flex items-center">
-                      <span className="font-bold pr-2">
-                        {comment.username} :
-                      </span>
-                      <span>{comment.content}</span>
-                      <div className="ml-auto text-right text-xs text-gray-400">
-                        <div>{moment(comment.timestamp).format("HH:mm")}</div>
-                      </div>
+
+                {comments.map((comment) => (
+                  <div key={comment.id} className="flex items-start">
+                    <span className="font-bold pr-2 whitespace-nowrap">
+                      {comment.username} :
+                    </span>
+                    <span className="break-all">{comment.content}</span>
+                    <div className="ml-auto text-right text-xs text-gray-400">
+                      {moment(comment.timestamp).format("HH:mm")}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
             ))}
           </div>
