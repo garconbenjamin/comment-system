@@ -39,7 +39,7 @@ const useSpriteDrag = ({
     const container = event.currentTarget as Draggable;
 
     if (container.dragging) {
-      const newPosition = container.data!.getLocalPosition(container.parent);
+      const newPosition = container.data?.getLocalPosition(container.parent);
 
       container.x = newPosition.x - pointerLocalX.current;
 
