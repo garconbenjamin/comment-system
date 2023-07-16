@@ -10,8 +10,8 @@ const Panels = (props: PanelsProps) => {
     setPosition,
     zoom,
     setUsername,
-    setEnableDragImage,
-    enableDragImage,
+    setEnableMoveImage,
+    enableMoveImage,
     username,
   } = props;
 
@@ -38,8 +38,8 @@ const Panels = (props: PanelsProps) => {
 
         <MovingPanel setPosition={setPosition} zoom={zoom} />
         <ModePanel
-          enableDragImage={enableDragImage}
-          setEnableDragImage={setEnableDragImage}
+          enableMoveImage={enableMoveImage}
+          setEnableMoveImage={setEnableMoveImage}
         />
         <UserPanel username={username} setUsername={setUsername} />
       </div>

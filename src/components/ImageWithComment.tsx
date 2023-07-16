@@ -14,6 +14,7 @@ const ImageWithComment = (
     setDialogs: SetDialogs;
     setImages: Dispatch<SetStateAction<Image[]>>;
     setCurrentDialogId: Dispatch<SetStateAction<string | null>>;
+    enableMoveImage: boolean;
   }
 ) => {
   const {
@@ -25,11 +26,11 @@ const ImageWithComment = (
     setDialogs,
     setCurrentDialogId,
     imageDialogs,
+    enableMoveImage,
   } = props;
   const { handlers } = useSpriteDrag({ setImages });
 
   const handleAddMarkPoint = (event: InteractionEvent) => {
-    event.stopPropagation();
     const container = event.currentTarget as DisplayObject;
     const localPos = event.data.getLocalPosition(container);
 
@@ -58,21 +59,27 @@ const ImageWithComment = (
       x={x}
       y={y}
       pointerdown={(e) => {
-        handleAddMarkPoint(e);
-        handlers.onDragStart(e, id);
+        if (enableMoveImage) handlers.onDragStart(e, id);
       }}
-      pointerup={handlers.onDragEnd}
-      pointerupoutside={handlers.onDragEnd}
-      pointermove={handlers.onDragMove}
+      pointerup={enableMoveImage ? handlers.onDragEnd : undefined}
+      pointerupoutside={enableMoveImage ? handlers.onDragEnd : undefined}
+      pointermove={enableMoveImage ? handlers.onDragMove : undefined}
     >
-      <Sprite image={src} interactive cursor="pointer" />
+      <Sprite
+        image={src}
+        interactive={!enableMoveImage}
+        cursor="pointer"
+        pointerdown={!enableMoveImage ? handleAddMarkPoint : undefined}
+      />
       {imageDialogs.map(({ x, y, color, id }) => (
         <MarkPoint
           x={x}
           y={y}
           color={color}
           key={id}
-          onClick={() => setCurrentDialogId(id)}
+          onClick={() => {
+            setCurrentDialogId(id);
+          }}
         />
       ))}
     </Container>

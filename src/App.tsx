@@ -42,14 +42,13 @@ const App = () => {
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [isPressingWhiteSpace, setIsPressingWhiteSpace] = useState(false);
 
-  const [enableDragImage, setEnableDragImage] = useState(false);
+  const [enableMoveImage, setEnableMoveImage] = useState(false);
 
   const [currentDialogId, setCurrentDialogId] = useState<string | null>(null);
 
   const currentDialogRef = useRef<Dialog | null>(null);
   const mouseDownPositionRef = useRef(position);
   const prevPositionRef = useRef(position);
-  const dialogsActionRef = useRef<SetDialogs | null>(null);
 
   const enableMoveArtboard = isMouseDown && isPressingWhiteSpace;
 
@@ -169,6 +168,7 @@ const App = () => {
                 x={x}
                 y={y}
                 src={src}
+                enableMoveImage={enableMoveImage}
                 setImages={setImages}
                 setCurrentDialogId={setCurrentDialogId}
                 imageDialogs={dialogs.filter((dialog) => dialog.imageId === id)}
@@ -208,8 +208,8 @@ const App = () => {
         />
       )}
       <Panels
-        enableDragImage={enableDragImage}
-        setEnableDragImage={setEnableDragImage}
+        enableMoveImage={enableMoveImage}
+        setEnableMoveImage={setEnableMoveImage}
         setPosition={setPosition}
         zoom={zoom}
         username={username}
