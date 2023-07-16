@@ -4,10 +4,11 @@ import ModePanel from "./ModePanel";
 import MovingPanel from "./MovingPanel";
 import { PanelsProps } from "./types";
 import UserPanel from "./UserPanel";
-
+import ZoomPanel from "./ZoomPanel";
 const Panels = (props: PanelsProps) => {
   const {
     setPosition,
+    setZoom,
     zoom,
     setUsername,
     setEnableMoveImage,
@@ -37,6 +38,7 @@ const Panels = (props: PanelsProps) => {
         </button>
 
         <MovingPanel setPosition={setPosition} zoom={zoom} />
+        <ZoomPanel setZoom={setZoom} zoom={zoom} />
         <ModePanel
           enableMoveImage={enableMoveImage}
           setEnableMoveImage={setEnableMoveImage}

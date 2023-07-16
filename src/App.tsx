@@ -15,7 +15,9 @@ import {
   INITIAL_USER,
   INITIAL_ZOOM,
   MARKPOINT_SIZE,
+  ZOOM_SPEED,
 } from "constant";
+
 const App = () => {
   // Content
   const [images, setImages] = useState<Image[]>(INITIAL_IMAGES);
@@ -76,27 +78,37 @@ const App = () => {
     prevPositionRef.current = position;
   };
   const handleStageZoom = (deltaY: number, x: number, y: number) => {
-    const s = deltaY > 0 ? 1.5 : 0.5;
+    const newScale = zoom + deltaY * ZOOM_SPEED;
+    if (newScale >= 0.5 && newScale <= 1.5) {
+      const worldPosition = {
+        x: (x - position.x) / zoom,
+        y: (y - position.y) / zoom,
+      };
+      const newPosition = {
+        x: worldPosition.x * newScale + position.x,
+        y: worldPosition.y * newScale + position.y,
+      };
 
-    const worldPosition = {
-      x: (x - position.x) / zoom.x,
-      y: (y - position.y) / zoom.y,
-    };
+      setPosition((prev) => ({
+        x: prev.x - (newPosition.x - x),
+        y: prev.y - (newPosition.y - y),
+      }));
 
-    const newScale = { x: zoom.x * s, y: zoom.y * s };
-    if (newScale.x < 0.25 || newScale.x > 1.75) return;
-    const newPosition = {
-      x: worldPosition.x * newScale.x + position.x,
-      y: worldPosition.y * newScale.y + position.y,
-    };
-
-    setPosition((prev) => ({
-      x: prev.x - (newPosition.x - x),
-      y: prev.y - (newPosition.y - y),
-    }));
-
-    setZoom(newScale);
+      setZoom(newScale);
+    } else {
+      return;
+    }
   };
+  useEffect(() => {
+    if (isPressingWhiteSpace) {
+      document.body.style.cursor = "grab";
+      if (isMouseDown) {
+        document.body.style.cursor = "grabbing";
+      }
+    } else {
+      document.body.style.cursor = "auto";
+    }
+  }, [isPressingWhiteSpace, isMouseDown]);
   useEffect(() => {
     const handleResize = throttle(() => {
       setWidth(window.innerWidth);
@@ -121,16 +133,7 @@ const App = () => {
       window.removeEventListener("keyup", handleLeaveWhiteSpace);
     };
   }, []);
-  useEffect(() => {
-    if (isPressingWhiteSpace) {
-      document.body.style.cursor = "grab";
-      if (isMouseDown) {
-        document.body.style.cursor = "grabbing";
-      }
-    } else {
-      document.body.style.cursor = "auto";
-    }
-  }, [isPressingWhiteSpace, isMouseDown]);
+
   const currentDialog = dialogs.find((dialog) => dialog.id === currentDialogId);
   return (
     <div
@@ -150,14 +153,13 @@ const App = () => {
               : pointerInImage || enableMoveImage
               ? undefined
               : (e) => {
-                  console.log(e.clientX, e.clientY);
                   const id = uuid();
                   setDialogs((prev) => [
                     ...prev,
                     {
                       id,
-                      x: (e.clientX - position.x - MARKPOINT_SIZE / 2) / zoom.x,
-                      y: (e.clientY - position.y - MARKPOINT_SIZE / 2) / zoom.y,
+                      x: (e.clientX - position.x - MARKPOINT_SIZE / 2) / zoom,
+                      y: (e.clientY - position.y - MARKPOINT_SIZE / 2) / zoom,
                       color: "yellow",
                       comments: [],
                     },
@@ -191,6 +193,7 @@ const App = () => {
                 setCurrentDialogId={setCurrentDialogId}
                 imageDialogs={dialogs.filter((dialog) => dialog.imageId === id)}
                 setDialogs={setDialogs}
+                isPressingWhiteSpace={isPressingWhiteSpace}
               />
             ))}
 
@@ -202,6 +205,7 @@ const App = () => {
                   x={dialog.x}
                   y={dialog.y}
                   color={dialog.color}
+                  isPressingWhiteSpace={isPressingWhiteSpace}
                   onClick={() => setCurrentDialogId(dialog.id)}
                 />
               ))}
@@ -227,6 +231,7 @@ const App = () => {
         setEnableMoveImage={setEnableMoveImage}
         setPosition={setPosition}
         zoom={zoom}
+        setZoom={setZoom}
         username={username}
         setUsername={setUsername}
       />

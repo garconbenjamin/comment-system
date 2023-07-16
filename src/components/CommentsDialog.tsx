@@ -20,7 +20,7 @@ const CommentsDialog = (props: {
   currentImage?: Image;
   setDialogs: Dispatch<SetStateAction<Dialog[]>>;
   setCurrentDialogId: Dispatch<SetStateAction<string | null>>;
-  zoom: { x: number; y: number };
+  zoom: number;
   position: { x: number; y: number };
   username: string;
 }) => {
@@ -88,20 +88,11 @@ const CommentsDialog = (props: {
 
   const getPosition = useCallback(
     () => ({
-      left: position.x + ((currentImage?.x || 0) + x) * zoom.x,
+      left: position.x + ((currentImage?.x || 0) + x) * zoom,
 
-      top: position.y + ((currentImage?.y || 0) + y) * zoom.y,
+      top: position.y + ((currentImage?.y || 0) + y) * zoom,
     }),
-    [
-      currentImage?.x,
-      currentImage?.y,
-      position.x,
-      position.y,
-      x,
-      y,
-      zoom.x,
-      zoom.y,
-    ]
+    [currentImage?.x, currentImage?.y, position.x, position.y, x, y, zoom]
   );
   return (
     <div

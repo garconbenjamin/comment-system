@@ -15,6 +15,7 @@ const ImageWithComment = (
     setImages: Dispatch<SetStateAction<Image[]>>;
     setCurrentDialogId: Dispatch<SetStateAction<string | null>>;
     enableMoveImage: boolean;
+    isPressingWhiteSpace: boolean;
   }
 ) => {
   const {
@@ -26,6 +27,7 @@ const ImageWithComment = (
     setDialogs,
     setCurrentDialogId,
     imageDialogs,
+    isPressingWhiteSpace,
     enableMoveImage,
   } = props;
   const { handlers } = useSpriteDrag({ setImages });
@@ -55,7 +57,7 @@ const ImageWithComment = (
   return (
     <Container
       key={id}
-      interactive
+      interactive={!isPressingWhiteSpace}
       x={x}
       y={y}
       pointerdown={(e) => {
@@ -64,11 +66,12 @@ const ImageWithComment = (
       pointerup={enableMoveImage ? handlers.onDragEnd : undefined}
       pointerupoutside={enableMoveImage ? handlers.onDragEnd : undefined}
       pointermove={enableMoveImage ? handlers.onDragMove : undefined}
+      cursor="move"
     >
       <Sprite
         image={src}
-        interactive={!enableMoveImage}
-        cursor="pointer"
+        interactive={!(enableMoveImage || isPressingWhiteSpace)}
+        cursor={"crosshair"}
         pointerdown={!enableMoveImage ? handleAddMarkPoint : undefined}
       />
       {imageDialogs.map(({ x, y, color, id }) => (
@@ -77,6 +80,7 @@ const ImageWithComment = (
           y={y}
           color={color}
           key={id}
+          isPressingWhiteSpace={isPressingWhiteSpace}
           onClick={() => {
             setCurrentDialogId(id);
           }}

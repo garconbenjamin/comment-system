@@ -10,7 +10,7 @@ const INITIAL_POSITION = {
   x: (window.innerWidth - ARTBOARD_WIDTH) / 2,
   y: (window.innerHeight - ARTBOARD_HEIGHT) / 2,
 };
-const INITIAL_ZOOM = { x: 1, y: 1 };
+const INITIAL_ZOOM = 1;
 const ZOOM_SPEED = 0.0001;
 
 const INITIAL_IMAGES = [
