@@ -11,7 +11,9 @@ import Instructions from "components/Instructions";
 import MarkPoint from "components/MarkPoint";
 import Panels from "components/Panels";
 import {
+  INITIAL_DIALOGS,
   INITIAL_IMAGES,
+  INITIAL_POSITION,
   INITIAL_USER,
   INITIAL_ZOOM,
   MARKPOINT_SIZE,
@@ -21,12 +23,13 @@ import {
 const App = () => {
   // Content
   const [images, setImages] = useState<Image[]>(INITIAL_IMAGES);
+
   const [username, setUsername] = useState(INITIAL_USER);
-  const [dialogs, setDialogs] = useState<Dialog[]>([]);
+  const [dialogs, setDialogs] = useState<Dialog[]>(INITIAL_DIALOGS);
 
   // Canvas
   const [zoom, setZoom] = useState(INITIAL_ZOOM);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [position, setPosition] = useState(INITIAL_POSITION);
   const [width, setWidth] = useState(window.innerWidth);
   const [height, setHeight] = useState(window.innerHeight);
 

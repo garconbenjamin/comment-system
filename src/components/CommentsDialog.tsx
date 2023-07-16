@@ -96,7 +96,7 @@ const CommentsDialog = (props: {
   );
   return (
     <div
-      className="absolute transform translate-x-14 -translate-y-1/2 -mt-2"
+      className="absolute z-10 transform translate-x-14 -translate-y-1/2 -mt-2"
       style={{
         ...getPosition(),
         width: 350,
