@@ -125,16 +125,21 @@ const App = () => {
     useCallback(
       (e) => {
         const id = uuid();
-        setDialogs((prev) => [
-          ...prev,
-          {
-            id,
-            x: (e.clientX - position.x - MARKPOINT_SIZE / 2) / zoom,
-            y: (e.clientY - position.y - MARKPOINT_SIZE / 2) / zoom,
-            color: "yellow",
-            comments: [],
-          },
-        ]);
+        setDialogs((prev) => {
+          if (prev.length > 0 && prev[prev.length - 1]?.comments.length === 0) {
+            prev.pop();
+          }
+          return [
+            ...prev,
+            {
+              id,
+              x: (e.clientX - position.x - MARKPOINT_SIZE / 2) / zoom,
+              y: (e.clientY - position.y - MARKPOINT_SIZE / 2) / zoom,
+              color: "yellow",
+              comments: [],
+            },
+          ];
+        });
         setCurrentDialogId(id);
       },
       [position.x, position.y, zoom]
