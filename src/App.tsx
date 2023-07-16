@@ -1,11 +1,8 @@
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
-import { DropShadowFilter } from "@pixi/filter-drop-shadow";
-import { Container, Sprite, Stage, Text, withFilters } from "@pixi/react";
-import useSpriteDrag from "hooks/useSpriteDrag";
-import { create, throttle } from "lodash";
-import { DisplayObject, FederatedPointerEvent, Texture } from "pixi.js";
-import type { Dialog, Image, SetDialogs } from "types";
+import { useEffect, useRef, useState } from "react";
+import { useDetectClickOutside } from "react-detect-click-outside";
+import { Container, Stage } from "@pixi/react";
+import { throttle } from "lodash";
+import type { Dialog, Image } from "types";
 import { v4 as uuid } from "uuid";
 import "@pixi/events";
 import CommentsDialog from "components/CommentsDialog";
@@ -14,18 +11,11 @@ import Instructions from "components/Instructions";
 import MarkPoint from "components/MarkPoint";
 import Panels from "components/Panels";
 import {
-  ARTBOARD_HEIGHT,
-  ARTBOARD_WIDTH,
   INITIAL_IMAGES,
-  INITIAL_POSITION,
   INITIAL_USER,
   INITIAL_ZOOM,
   MARKPOINT_SIZE,
-  ZOOM_SPEED,
 } from "constant";
-import cover from "images/cover.jpg";
-const ShadowFilter = withFilters(Container, { shadow: DropShadowFilter });
-
 const App = () => {
   // Content
   const [images, setImages] = useState<Image[]>(INITIAL_IMAGES);
@@ -43,15 +33,16 @@ const App = () => {
   const [isPressingWhiteSpace, setIsPressingWhiteSpace] = useState(false);
 
   const [enableMoveImage, setEnableMoveImage] = useState(false);
-
+  const [pointerInImage, setPointerInImage] = useState(false);
   const [currentDialogId, setCurrentDialogId] = useState<string | null>(null);
 
-  const currentDialogRef = useRef<Dialog | null>(null);
   const mouseDownPositionRef = useRef(position);
   const prevPositionRef = useRef(position);
 
   const enableMoveArtboard = isMouseDown && isPressingWhiteSpace;
-
+  const ref = useDetectClickOutside({
+    onTriggered: () => setCurrentDialogId(null),
+  });
   const handleStageMouseDown = (
     e: React.MouseEvent<HTMLCanvasElement, MouseEvent>
   ) => {
@@ -84,15 +75,28 @@ const App = () => {
     mouseDownPositionRef.current = position;
     prevPositionRef.current = position;
   };
+  const handleStageZoom = (deltaY: number, x: number, y: number) => {
+    const s = deltaY > 0 ? 1.5 : 0.5;
 
-  const handleDialogOpen = (
-    e: React.MouseEvent<HTMLDivElement, MouseEvent>,
-    dialog: Dialog
-  ) => {
-    e.stopPropagation();
-    currentDialogRef.current = dialog;
+    const worldPosition = {
+      x: (x - position.x) / zoom.x,
+      y: (y - position.y) / zoom.y,
+    };
+
+    const newScale = { x: zoom.x * s, y: zoom.y * s };
+    if (newScale.x < 0.25 || newScale.x > 1.75) return;
+    const newPosition = {
+      x: worldPosition.x * newScale.x + position.x,
+      y: worldPosition.y * newScale.y + position.y,
+    };
+
+    setPosition((prev) => ({
+      x: prev.x - (newPosition.x - x),
+      y: prev.y - (newPosition.y - y),
+    }));
+
+    setZoom(newScale);
   };
-
   useEffect(() => {
     const handleResize = throttle(() => {
       setWidth(window.innerWidth);
@@ -117,32 +121,16 @@ const App = () => {
       window.removeEventListener("keyup", handleLeaveWhiteSpace);
     };
   }, []);
-
-  /////////////////////////////////////////////////////////////////
-
-  const handleStageZoom = (deltaY: number, x: number, y: number) => {
-    const s = deltaY > 0 ? 1.5 : 0.5;
-
-    const worldPosition = {
-      x: (x - position.x) / zoom.x,
-      y: (y - position.y) / zoom.y,
-    };
-
-    const newScale = { x: zoom.x * s, y: zoom.y * s };
-    if (newScale.x < 0.25 || newScale.x > 1.75) return;
-    const newPosition = {
-      x: worldPosition.x * newScale.x + position.x,
-      y: worldPosition.y * newScale.y + position.y,
-    };
-
-    setPosition((prev) => ({
-      x: prev.x - (newPosition.x - x),
-      y: prev.y - (newPosition.y - y),
-    }));
-
-    setZoom(newScale);
-  };
-
+  useEffect(() => {
+    if (isPressingWhiteSpace) {
+      document.body.style.cursor = "grab";
+      if (isMouseDown) {
+        document.body.style.cursor = "grabbing";
+      }
+    } else {
+      document.body.style.cursor = "auto";
+    }
+  }, [isPressingWhiteSpace, isMouseDown]);
   const currentDialog = dialogs.find((dialog) => dialog.id === currentDialogId);
   return (
     <div
@@ -150,17 +138,47 @@ const App = () => {
       className="overflow-hidden relative"
       style={{ width, height }}
     >
-      <div>
+      <div className="relative" ref={ref}>
         <Stage
           width={width}
           height={height}
           options={{ backgroundColor: 0xd5d5d5 }}
           onWheel={(e) => handleStageZoom(e.deltaY, e.clientX, e.clientY)}
-          onMouseDown={isPressingWhiteSpace ? handleStageMouseDown : undefined}
+          onMouseDown={
+            isPressingWhiteSpace
+              ? handleStageMouseDown
+              : pointerInImage || enableMoveImage
+              ? undefined
+              : (e) => {
+                  console.log(e.clientX, e.clientY);
+                  const id = uuid();
+                  setDialogs((prev) => [
+                    ...prev,
+                    {
+                      id,
+                      x: (e.clientX - position.x - MARKPOINT_SIZE / 2) / zoom.x,
+                      y: (e.clientY - position.y - MARKPOINT_SIZE / 2) / zoom.y,
+                      color: "yellow",
+                      comments: [],
+                    },
+                  ]);
+                  setCurrentDialogId(id);
+                }
+          }
           onMouseUp={isPressingWhiteSpace ? handleStageMouseUp : undefined}
           onMouseMove={handleStageMouseMove}
         >
-          <Container position={position} scale={zoom}>
+          <Container
+            position={position}
+            interactive
+            scale={zoom}
+            pointerover={() => {
+              setPointerInImage(true);
+            }}
+            pointerout={() => {
+              setPointerInImage(false);
+            }}
+          >
             {INITIAL_IMAGES.map(({ x, y, id, src }) => (
               <ImageWithComment
                 key={id}
@@ -175,38 +193,35 @@ const App = () => {
                 setDialogs={setDialogs}
               />
             ))}
-            {/* {dialogs.map((dialog, index) => (
-              <MarkPoint
-                key={dialog.id}
-                x={dialog.x}
-                y={dialog.y}
-                color={dialog.color}
-                onClick={(e) => handleDialogOpen(e, dialog.id)}
-              />
-            ))} */}
-            {/* {currentDialog && (
-              <MarkPoint
-                key={currentDialog.id}
-                {...currentDialog}
-                zIndex={dialogs.length + 1}
-              />
-            )} */}
+
+            {dialogs
+              .filter((dialog) => !dialog.imageId)
+              .map((dialog) => (
+                <MarkPoint
+                  key={dialog.id}
+                  x={dialog.x}
+                  y={dialog.y}
+                  color={dialog.color}
+                  onClick={() => setCurrentDialogId(dialog.id)}
+                />
+              ))}
           </Container>
         </Stage>
+        {currentDialog && (
+          <CommentsDialog
+            setDialogs={setDialogs}
+            username={username}
+            zoom={zoom}
+            position={position}
+            currentDialog={currentDialog}
+            currentImage={images.find(
+              (image) => image.id === currentDialog.imageId
+            )}
+            setCurrentDialogId={setCurrentDialogId}
+          />
+        )}
       </div>
-      {currentDialog && (
-        <CommentsDialog
-          setDialogs={setDialogs}
-          username={username}
-          zoom={zoom}
-          position={position}
-          currentDialog={currentDialog}
-          currentImage={images.find(
-            (image) => image.id === currentDialog.imageId
-          )}
-          setCurrentDialogId={setCurrentDialogId}
-        />
-      )}
+
       <Panels
         enableMoveImage={enableMoveImage}
         setEnableMoveImage={setEnableMoveImage}

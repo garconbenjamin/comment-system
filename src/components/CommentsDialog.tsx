@@ -105,14 +105,14 @@ const CommentsDialog = (props: {
   );
   return (
     <div
-      className="absolute transform translate-x-14 -translate-y-1/2"
+      className="absolute transform translate-x-14 -translate-y-1/2 -mt-2"
       style={{
         ...getPosition(),
         width: 350,
       }}
     >
       <Tip />
-      <div className="overflow-hidden bg-white rounded-lg shadow-lg">
+      <div className="select-none overflow-hidden bg-white rounded-lg shadow-lg">
         <div className="flex items-center border-b border-gray-300 py-2 px-4 gap-x-2">
           {Object.entries(COLORS).map(([key, value]) => (
             <div className="flex justify-center items-center" key={key}>

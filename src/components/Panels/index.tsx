@@ -20,7 +20,7 @@ const Panels = (props: PanelsProps) => {
   return (
     <div
       className={
-        "transform transition fixed right-0 top-0 bg-slate-100 shadow-md ease-in-out duration-500 " +
+        "select-none transform transition fixed right-0 top-0 bg-slate-100 shadow-md ease-in-out duration-500 " +
         (showPanel ? "translate-x-0" : "translate-x-full")
       }
     >
