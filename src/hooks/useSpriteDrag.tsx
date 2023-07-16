@@ -22,50 +22,51 @@ const useSpriteDrag = ({
   const pointerLocalY = useRef(0);
 
   const onDragStart = (event: InteractionEvent, id: string) => {
-    const sprite = event.currentTarget as Draggable;
-    const localPos = event.data.getLocalPosition(sprite);
+    const container = event.currentTarget as Draggable;
+
+    const localPos = event.data.getLocalPosition(container);
 
     pointerLocalX.current = localPos.x;
     pointerLocalY.current = localPos.y;
 
-    sprite.alpha = 0.5;
-    sprite.data = event.data;
-    sprite.data.imageId = id;
+    container.alpha = 0.5;
+    container.data = event.data;
+    container.data.imageId = id;
 
-    sprite.dragging = true;
+    container.dragging = true;
   };
+  const onDragMove = (event: InteractionEvent) => {
+    const container = event.currentTarget as Draggable;
 
+    if (container.dragging) {
+      const newPosition = container.data!.getLocalPosition(container.parent);
+
+      container.x = newPosition.x - pointerLocalX.current;
+
+      container.y = newPosition.y - pointerLocalY.current;
+    }
+  };
   const onDragEnd = (event: InteractionEvent) => {
-    const sprite = event.currentTarget as Draggable;
-
-    sprite.alpha = 1;
-    sprite.dragging = false;
-    const { imageId } = sprite.data || {};
+    const container = event.currentTarget as Draggable;
+    container.alpha = 1;
+    container.dragging = false;
+    const { imageId } = container.data || {};
 
     if (imageId) {
       setImages((prev) =>
         prev.map((image) => {
           if (image.id === imageId) {
-            image.x = sprite.x;
-            image.y = sprite.y;
+            image.x = container.x;
+
+            image.y = container.y;
           }
           return image;
         })
       );
     }
-    sprite.data = null;
+    container.data = null;
     pointerLocalX.current = 0;
     pointerLocalY.current = 0;
-  };
-
-  const onDragMove = (event: InteractionEvent) => {
-    const sprite = event.currentTarget as Draggable;
-    if (sprite.dragging) {
-      const newPosition = sprite.data!.getLocalPosition(sprite.parent);
-
-      sprite.x = newPosition.x - pointerLocalX.current;
-      sprite.y = newPosition.y - pointerLocalY.current;
-    }
   };
 
   return { handlers: { onDragStart, onDragEnd, onDragMove } };

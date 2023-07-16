@@ -1,14 +1,15 @@
-import { useEffect, useRef, useState } from "react";
+import { Dispatch, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { DropShadowFilter } from "@pixi/filter-drop-shadow";
-import { InteractionData, InteractionEvent } from "@pixi/interaction";
-import { Container, Sprite, Stage, withFilters } from "@pixi/react";
+import { Container, Sprite, Stage, Text, withFilters } from "@pixi/react";
 import useSpriteDrag from "hooks/useSpriteDrag";
-import { throttle } from "lodash";
+import { create, throttle } from "lodash";
 import { DisplayObject, FederatedPointerEvent, Texture } from "pixi.js";
-import type { Dialog, Image } from "types";
+import type { Dialog, Image, SetDialogs } from "types";
 import { v4 as uuid } from "uuid";
 import "@pixi/events";
 import CommentsDialog from "components/CommentsDialog";
+import ImageWithComment from "components/ImageWithComment";
 import Instructions from "components/Instructions";
 import MarkPoint from "components/MarkPoint";
 import Panels from "components/Panels";
@@ -40,27 +41,15 @@ const App = () => {
   // User action flags
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [isPressingWhiteSpace, setIsPressingWhiteSpace] = useState(false);
-  const [currentDialogId, setCurrentDialogId] = useState<string | null>(null);
+  // const [currentDialog, setCurrentDialog] = useState<Dialog | null>(null);
   const [enableDragImage, setEnableDragImage] = useState(false);
-  const [draggingImageId, setDraggingImageId] = useState<string | null>(null);
 
+  const currentDialogRef = useRef<Dialog | null>(null);
   const mouseDownPositionRef = useRef(position);
   const prevPositionRef = useRef(position);
-  const imagePositionRef = useRef<{ x: number; y: number }>();
-  const dialogsRef = useRef(dialogs);
+  const dialogsActionRef = useRef<SetDialogs | null>(null);
 
   const enableMoveArtboard = isMouseDown && isPressingWhiteSpace;
-  const currentDialog = dialogs.find((dialog) => dialog.id === currentDialogId);
-
-  const { handlers } = useSpriteDrag();
-
-  const handleStageZoom = (e: React.WheelEvent<HTMLCanvasElement>) => {
-    if (
-      zoom + e.deltaY * ZOOM_SPEED >= 0.5 &&
-      zoom + e.deltaY * ZOOM_SPEED <= 1.5
-    )
-      setZoom(zoom + e.deltaY * ZOOM_SPEED);
-  };
 
   const handleStageMouseDown = (
     e: React.MouseEvent<HTMLCanvasElement, MouseEvent>
@@ -95,73 +84,12 @@ const App = () => {
     prevPositionRef.current = position;
   };
 
-  const handleAddMarkPoint = (
-    event: FederatedPointerEvent,
-    imageId?: string
-  ) => {
-    if (!isPressingWhiteSpace) {
-      event.stopPropagation();
-      const { clientX, clientY } = event;
-      const id = uuid();
-      const dialog = {
-        id,
-        x: (clientX - position.x - MARKPOINT_SIZE / 2) / zoom,
-        y: (clientY - position.y - MARKPOINT_SIZE / 2) / zoom,
-        comments: [],
-        color: "yellow",
-        imageId,
-      };
-      setCurrentDialogId(id);
-      setDialogs((prev) => {
-        if (prev.length > 0 && prev[prev.length - 1]?.comments.length === 0) {
-          prev.pop();
-        }
-        return [...prev, dialog];
-      });
-    }
-  };
-
   const handleDialogOpen = (
     e: React.MouseEvent<HTMLDivElement, MouseEvent>,
-    dialogId: string
+    dialog: Dialog
   ) => {
     e.stopPropagation();
-    setCurrentDialogId(dialogId);
-  };
-
-  const handleImagePointerMove = (e: FederatedPointerEvent, id: string) => {
-    if (enableDragImage && isMouseDown) {
-      const { clientX, clientY } = e;
-
-      const deltaX = (clientX - mouseDownPositionRef.current.x) * zoom;
-      const deltaY = (clientY - mouseDownPositionRef.current.y) * zoom;
-
-      setImages(
-        images.map((image) => {
-          if (image.id === id) {
-            image.x = (imagePositionRef?.current?.x ?? image.x) + deltaX;
-            image.y = (imagePositionRef?.current?.y ?? image.x) + deltaY;
-          }
-          return image;
-        })
-      );
-
-      setDialogs(
-        dialogs.map((dialog, i) => {
-          if (dialog.imageId === id) {
-            dialog.x =
-              dialogsRef?.current[i].x * zoom +
-              (clientX - mouseDownPositionRef.current.x);
-
-            dialog.y =
-              dialogsRef?.current[i].y * zoom +
-              (clientY - mouseDownPositionRef.current.y);
-          }
-
-          return dialog;
-        })
-      );
-    }
+    currentDialogRef.current = dialog;
   };
 
   useEffect(() => {
@@ -189,56 +117,60 @@ const App = () => {
     };
   }, []);
 
-  useEffect(() => {
-    if (!currentDialog) {
-      setDialogs((prev) => {
-        if (prev.length > 0 && prev[prev.length - 1]?.comments.length === 0) {
-          prev.pop();
-        }
-        return [...prev];
-      });
-    }
-  }, [currentDialog, setDialogs]);
+  /////////////////////////////////////////////////////////////////
+
+  const handleStageZoom = (deltaY: number, x: number, y: number) => {
+    const s = deltaY > 0 ? 1.5 : 0.5;
+
+    const worldPosition = {
+      x: (x - position.x) / zoom.x,
+      y: (y - position.y) / zoom.y,
+    };
+
+    const newScale = { x: zoom.x * s, y: zoom.y * s };
+    if (newScale.x < 0.25 || newScale.x > 1.75) return;
+    const newPosition = {
+      x: worldPosition.x * newScale.x + position.x,
+      y: worldPosition.y * newScale.y + position.y,
+    };
+
+    setPosition((prev) => ({
+      x: prev.x - (newPosition.x - x),
+      y: prev.y - (newPosition.y - y),
+    }));
+
+    setZoom(newScale);
+  };
 
   return (
-    <div className="overflow-hidden relative" style={{ width, height }}>
+    <div
+      id="main"
+      className="overflow-hidden relative"
+      style={{ width, height }}
+    >
       <div>
         <Stage
           width={width}
           height={height}
           options={{ backgroundColor: 0xd5d5d5 }}
-          onWheel={throttle(handleStageZoom, 500)}
-          onMouseDown={handleStageMouseDown}
-          onMouseUp={handleStageMouseUp}
+          onWheel={(e) => handleStageZoom(e.deltaY, e.clientX, e.clientY)}
+          onMouseDown={isPressingWhiteSpace ? handleStageMouseDown : undefined}
+          onMouseUp={isPressingWhiteSpace ? handleStageMouseUp : undefined}
           onMouseMove={handleStageMouseMove}
         >
-          <Container position={position} scale={{ x: zoom, y: zoom }}>
-            <ShadowFilter>
-              <Sprite
-                x={0}
-                y={0}
-                anchor={0.5}
-                texture={Texture.WHITE}
-                width={ARTBOARD_WIDTH}
-                height={ARTBOARD_HEIGHT}
-                interactive
-                // onclick={(e) => !enableDragImage && handleAddMarkPoint(e)}
-                zIndex={0}
-              />
-            </ShadowFilter>
-
-            {images.map(({ x, y, id, src }) => (
-              <Sprite
+          <Container position={position} scale={zoom}>
+            {INITIAL_IMAGES.map(({ x, y, id, src }) => (
+              <ImageWithComment
                 key={id}
-                image={src}
+                id={id}
                 x={x}
                 y={y}
-                anchor={0.5}
-                interactive
-                pointerdown={(e) => handlers.onDragStart(e, id)}
-                pointerup={handlers.onDragEnd}
-                pointerupoutside={handlers.onDragEnd}
-                pointermove={handlers.onDragMove}
+                zoom={zoom}
+                position={position}
+                src={src}
+                setImages={setImages}
+                currentDialogRef={currentDialogRef}
+                dialogsActionRef={dialogsActionRef}
               />
             ))}
             {/* {dialogs.map((dialog, index) => (
@@ -246,7 +178,6 @@ const App = () => {
                 key={dialog.id}
                 x={dialog.x}
                 y={dialog.y}
-                zIndex={index + 3}
                 color={dialog.color}
                 onClick={(e) => handleDialogOpen(e, dialog.id)}
               />
@@ -261,16 +192,17 @@ const App = () => {
           </Container>
         </Stage>
       </div>
-      {currentDialog && (
+      {/* {currentDialogRef.current && (
         <CommentsDialog
-          currentDialog={currentDialog}
+          currentDialogRef={currentDialogRef}
           setDialogs={setDialogs}
-          setCurrentDialogId={setCurrentDialogId}
           username={username}
           zoom={zoom}
           position={position}
+          images={images}
+          dialogsActionRef={dialogsActionRef}
         />
-      )}
+      )} */}
       <Panels
         enableDragImage={enableDragImage}
         setEnableDragImage={setEnableDragImage}

@@ -8,10 +8,9 @@ const MarkPoint = (props: {
   x: number;
   y: number;
   color?: string;
-  zIndex: number;
   onClick?: (e: any) => void;
 }) => {
-  const { x, y, zIndex, color = "yellow", onClick = () => null } = props;
+  const { x, y, color = "yellow", onClick = () => null } = props;
 
   return (
     <Text
@@ -19,8 +18,9 @@ const MarkPoint = (props: {
       text={COLORS[color]}
       x={x}
       y={y}
-      zIndex={zIndex}
+      anchor={0.5}
       interactive={true}
+      buttonMode={true}
       mousedown={(e) => {
         e.stopPropagation();
         onClick(e);
