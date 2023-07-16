@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDetectClickOutside } from "react-detect-click-outside";
 import { Container, Stage } from "@pixi/react";
 import { throttle } from "lodash";
@@ -23,9 +23,9 @@ import {
 const App = () => {
   // Content
   const [images, setImages] = useState<Image[]>(INITIAL_IMAGES);
-
   const [username, setUsername] = useState(INITIAL_USER);
   const [dialogs, setDialogs] = useState<Dialog[]>(INITIAL_DIALOGS);
+  const [currentDialogId, setCurrentDialogId] = useState<string | null>(null);
 
   // Canvas
   const [zoom, setZoom] = useState(INITIAL_ZOOM);
@@ -36,72 +36,110 @@ const App = () => {
   // User action flags
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [isPressingWhiteSpace, setIsPressingWhiteSpace] = useState(false);
-
   const [enableMoveImage, setEnableMoveImage] = useState(false);
   const [pointerInImage, setPointerInImage] = useState(false);
-  const [currentDialogId, setCurrentDialogId] = useState<string | null>(null);
 
+  const enableMoveArtboard = isMouseDown && isPressingWhiteSpace;
+  const currentDialog = useMemo(
+    () => dialogs.find((dialog) => dialog.id === currentDialogId),
+    [currentDialogId, dialogs]
+  );
+
+  //Ref
   const mouseDownPositionRef = useRef(position);
   const prevPositionRef = useRef(position);
 
-  const enableMoveArtboard = isMouseDown && isPressingWhiteSpace;
+  // Close dialog when click outside of the canvas
   const ref = useDetectClickOutside({
-    onTriggered: () => setCurrentDialogId(null),
-  });
-  const handleStageMouseDown = (
-    e: React.MouseEvent<HTMLCanvasElement, MouseEvent>
-  ) => {
-    mouseDownPositionRef.current = {
-      x: e.nativeEvent.clientX,
-      y: e.nativeEvent.clientY,
-    };
-    setIsMouseDown(true);
-  };
-
-  const handleStageMouseMove = (
-    e: React.MouseEvent<HTMLCanvasElement, MouseEvent>
-  ) => {
-    if (enableMoveArtboard) {
-      const { clientX, clientY } = e;
-
-      setPosition({
-        x:
-          prevPositionRef.current.x +
-          (clientX - mouseDownPositionRef.current.x),
-        y:
-          prevPositionRef.current.y +
-          (clientY - mouseDownPositionRef.current.y),
+    onTriggered: () => {
+      setCurrentDialogId(null);
+      setDialogs((prev) => {
+        if (prev.length > 0 && prev[prev.length - 1]?.comments.length === 0) {
+          prev.pop();
+        }
+        return prev;
       });
-    }
-  };
+    },
+  });
 
-  const handleStageMouseUp = () => {
+  const handleStageMouseDown = useCallback(
+    (e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
+      mouseDownPositionRef.current = {
+        x: e.nativeEvent.clientX,
+        y: e.nativeEvent.clientY,
+      };
+      setIsMouseDown(true);
+    },
+    []
+  );
+
+  const handleStageMouseMove = useCallback(
+    (e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
+      if (enableMoveArtboard) {
+        const { clientX, clientY } = e;
+        setPosition({
+          x:
+            prevPositionRef.current.x +
+            (clientX - mouseDownPositionRef.current.x),
+          y:
+            prevPositionRef.current.y +
+            (clientY - mouseDownPositionRef.current.y),
+        });
+      }
+    },
+    [enableMoveArtboard]
+  );
+
+  const handleStageMouseUp = useCallback(() => {
     setIsMouseDown(false);
     mouseDownPositionRef.current = position;
     prevPositionRef.current = position;
-  };
-  const handleStageZoom = (deltaY: number, x: number, y: number) => {
-    const newScale = zoom + deltaY * ZOOM_SPEED;
-    if (newScale >= 0.5 && newScale <= 1.5) {
-      const worldPosition = {
-        x: (x - position.x) / zoom,
-        y: (y - position.y) / zoom,
-      };
-      const newPosition = {
-        x: worldPosition.x * newScale + position.x,
-        y: worldPosition.y * newScale + position.y,
-      };
+  }, [position]);
+  const handleStageZoom = useCallback(
+    (deltaY: number, x: number, y: number) => {
+      const newScale = zoom + deltaY * ZOOM_SPEED;
+      if (newScale >= 0.5 && newScale <= 1.5) {
+        const worldPosition = {
+          x: (x - position.x) / zoom,
+          y: (y - position.y) / zoom,
+        };
+        const newPosition = {
+          x: worldPosition.x * newScale + position.x,
+          y: worldPosition.y * newScale + position.y,
+        };
 
-      setPosition((prev) => ({
-        x: prev.x - (newPosition.x - x),
-        y: prev.y - (newPosition.y - y),
-      }));
+        setPosition((prev) => ({
+          x: prev.x - (newPosition.x - x),
+          y: prev.y - (newPosition.y - y),
+        }));
 
-      setZoom(newScale);
-    } else {
-      return;
-    }
-  };
+        setZoom(newScale);
+      } else {
+        return;
+      }
+    },
+    [position.x, position.y, zoom]
+  );
+
+  const handleAddMarkPointOnCanvas: React.MouseEventHandler<HTMLCanvasElement> =
+    useCallback(
+      (e) => {
+        const id = uuid();
+        setDialogs((prev) => [
+          ...prev,
+          {
+            id,
+            x: (e.clientX - position.x - MARKPOINT_SIZE / 2) / zoom,
+            y: (e.clientY - position.y - MARKPOINT_SIZE / 2) / zoom,
+            color: "yellow",
+            comments: [],
+          },
+        ]);
+        setCurrentDialogId(id);
+      },
+      [position.x, position.y, zoom]
+    );
+
   useEffect(() => {
     if (isPressingWhiteSpace) {
       document.body.style.cursor = "grab";
@@ -137,7 +175,6 @@ const App = () => {
     };
   }, []);
 
-  const currentDialog = dialogs.find((dialog) => dialog.id === currentDialogId);
   return (
     <div
       id="main"
@@ -155,20 +192,7 @@ const App = () => {
               ? handleStageMouseDown
               : pointerInImage || enableMoveImage
               ? undefined
-              : (e) => {
-                  const id = uuid();
-                  setDialogs((prev) => [
-                    ...prev,
-                    {
-                      id,
-                      x: (e.clientX - position.x - MARKPOINT_SIZE / 2) / zoom,
-                      y: (e.clientY - position.y - MARKPOINT_SIZE / 2) / zoom,
-                      color: "yellow",
-                      comments: [],
-                    },
-                  ]);
-                  setCurrentDialogId(id);
-                }
+              : handleAddMarkPointOnCanvas
           }
           onMouseUp={isPressingWhiteSpace ? handleStageMouseUp : undefined}
           onMouseMove={handleStageMouseMove}

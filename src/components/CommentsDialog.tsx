@@ -36,6 +36,14 @@ const CommentsDialog = (props: {
   } = props;
   const { comments, x, y } = props.currentDialog;
 
+  const commentsGroupByDate = useMemo(
+    () =>
+      groupBy(comments, (comment) =>
+        moment(comment.timestamp).format("YYYY-MM-DD")
+      ),
+    [comments]
+  );
+
   const sendComment = () => {
     const id = uuid();
     const newComment = {
@@ -58,29 +66,24 @@ const CommentsDialog = (props: {
 
     setText("");
   };
+
   const removeCurrentDialog = useCallback(() => {
     setDialogs((dialogs) =>
       dialogs.filter((dialog) => dialog.id !== currentDialog.id)
     );
   }, [currentDialog.id, setDialogs]);
+
   const handleClose = () => {
     setCurrentDialogId(null);
     if (comments.length === 0) {
       removeCurrentDialog();
     }
   };
+
   const handleResolve = () => {
     setCurrentDialogId(null);
     removeCurrentDialog();
   };
-
-  const commentsGroupByDate = useMemo(
-    () =>
-      groupBy(comments, (comment) =>
-        moment(comment.timestamp).format("YYYY-MM-DD")
-      ),
-    [comments]
-  );
 
   useEffect(() => {
     setText("");
@@ -170,20 +173,27 @@ const CommentsDialog = (props: {
         )}
         <div className="flex px-4 py-2">
           <span className="font-bold pr-2">{username} :</span>
-          <input
-            type="text"
-            className="flex-1 border border-gray-300 rounded-md px-2"
-            placeholder="Add a comment"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-          />
-          <button
-            disabled={!text}
-            className="pl-2 text-blue-500"
-            onClick={sendComment}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              sendComment();
+            }}
           >
-            <MdSend size={20} />
-          </button>
+            <input
+              type="text"
+              className="flex-1 border border-gray-300 rounded-md px-2"
+              placeholder="Add a comment"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+            />
+            <button
+              disabled={!text}
+              type="submit"
+              className="pl-2 text-blue-500"
+            >
+              <MdSend size={20} />
+            </button>
+          </form>
         </div>
       </div>
     </div>
