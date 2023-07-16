@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import { MdClose } from "react-icons/md";
 const Instructions = () => {
   const [showInstructions, setShowInstructions] = useState(true);
   return (
@@ -12,10 +12,15 @@ const Instructions = () => {
     >
       <div className="relative">
         <button
-          className="w-full absolute top-0 transform -translate-y-full text-white bg-slate-500"
+          className="w-full flex items-center justify-center absolute top-0 transform -translate-y-full text-white bg-slate-500"
           onClick={() => setShowInstructions((prev) => !prev)}
         >
-          How to use?
+          <span>How to use?</span>
+          {showInstructions && (
+            <span className="absolute right-2">
+              <MdClose />
+            </span>
+          )}
         </button>
         <div className="p-3">
           <div>Instruction</div>

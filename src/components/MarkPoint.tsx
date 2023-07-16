@@ -1,5 +1,5 @@
 import { Text } from "@pixi/react";
-import { TextStyle } from "pixi.js";
+import { FederatedEvent, TextStyle } from "pixi.js";
 import "@pixi/events";
 import { COLORS, MARKPOINT_SIZE } from "constant";
 
@@ -8,10 +8,16 @@ const MarkPoint = (props: {
   x: number;
   y: number;
   color?: string;
-  zIndex: number;
-  onClick?: (e: any) => void;
+  isPressingWhiteSpace?: boolean;
+  onClick?: (e: FederatedEvent) => void;
 }) => {
-  const { x, y, zIndex, color = "yellow", onClick = () => null } = props;
+  const {
+    x,
+    y,
+    color = "yellow",
+    onClick = () => null,
+    isPressingWhiteSpace,
+  } = props;
 
   return (
     <Text
@@ -19,12 +25,14 @@ const MarkPoint = (props: {
       text={COLORS[color]}
       x={x}
       y={y}
-      zIndex={zIndex}
-      interactive={true}
+      anchor={0.5}
+      interactive={!isPressingWhiteSpace}
+      buttonMode={true}
       mousedown={(e) => {
         e.stopPropagation();
         onClick(e);
       }}
+      cursor="pointer"
     />
   );
 };

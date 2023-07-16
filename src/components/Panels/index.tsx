@@ -4,14 +4,15 @@ import ModePanel from "./ModePanel";
 import MovingPanel from "./MovingPanel";
 import { PanelsProps } from "./types";
 import UserPanel from "./UserPanel";
-
+import ZoomPanel from "./ZoomPanel";
 const Panels = (props: PanelsProps) => {
   const {
     setPosition,
+    setZoom,
     zoom,
     setUsername,
-    setEnableDragImage,
-    enableDragImage,
+    setEnableMoveImage,
+    enableMoveImage,
     username,
   } = props;
 
@@ -20,7 +21,7 @@ const Panels = (props: PanelsProps) => {
   return (
     <div
       className={
-        "transform transition fixed right-0 top-0 bg-slate-100 shadow-md ease-in-out duration-500 " +
+        "select-none transform transition fixed right-0 top-0 bg-slate-100 shadow-md ease-in-out duration-500 " +
         (showPanel ? "translate-x-0" : "translate-x-full")
       }
     >
@@ -37,9 +38,10 @@ const Panels = (props: PanelsProps) => {
         </button>
 
         <MovingPanel setPosition={setPosition} zoom={zoom} />
+        <ZoomPanel setZoom={setZoom} zoom={zoom} />
         <ModePanel
-          enableDragImage={enableDragImage}
-          setEnableDragImage={setEnableDragImage}
+          enableMoveImage={enableMoveImage}
+          setEnableMoveImage={setEnableMoveImage}
         />
         <UserPanel username={username} setUsername={setUsername} />
       </div>

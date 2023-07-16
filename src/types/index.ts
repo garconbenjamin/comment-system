@@ -1,3 +1,4 @@
+import { Dispatch, SetStateAction } from "react";
 import { COLORS } from "constant";
 
 type Comment = {
@@ -23,5 +24,7 @@ type Image = {
   y: number;
 };
 
-type ColorValue = (typeof COLORS)[keyof typeof COLORS];
-export type { Comment, Dialog, Image, ColorValue };
+type SetDialogs = Dispatch<SetStateAction<Dialog[]>>;
+
+type ColorValue = typeof COLORS[keyof typeof COLORS];
+export type { Comment, Dialog, Image, ColorValue, SetDialogs };

@@ -9,7 +9,7 @@ const UserPanel = (props: Pick<PanelsProps, "username" | "setUsername">) => {
     <div>
       <h2 className=" mb-1">User</h2>
       <input
-        className="border border-gray-300 rounded-md px-2 disabled:border-transparent"
+        className="select-auto border border-gray-300 rounded-md px-2 disabled:border-transparent"
         placeholder="username"
         value={userNameInput}
         onChange={(e) => setUserNameInput(e.target.value)}

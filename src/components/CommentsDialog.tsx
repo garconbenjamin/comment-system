@@ -9,7 +9,7 @@ import {
 import { MdClose, MdSend } from "react-icons/md";
 import { groupBy } from "lodash";
 import moment from "moment";
-import type { Dialog } from "types";
+import type { Dialog, Image } from "types";
 import { v4 as uuid } from "uuid";
 import { COLORS } from "constant";
 const Tip = () => (
@@ -17,6 +17,7 @@ const Tip = () => (
 );
 const CommentsDialog = (props: {
   currentDialog: Dialog;
+  currentImage?: Image;
   setDialogs: Dispatch<SetStateAction<Dialog[]>>;
   setCurrentDialogId: Dispatch<SetStateAction<string | null>>;
   zoom: number;
@@ -31,8 +32,17 @@ const CommentsDialog = (props: {
     currentDialog,
     position,
     zoom,
+    currentImage,
   } = props;
   const { comments, x, y } = props.currentDialog;
+
+  const commentsGroupByDate = useMemo(
+    () =>
+      groupBy(comments, (comment) =>
+        moment(comment.timestamp).format("YYYY-MM-DD")
+      ),
+    [comments]
+  );
 
   const sendComment = () => {
     const id = uuid();
@@ -56,45 +66,47 @@ const CommentsDialog = (props: {
 
     setText("");
   };
+
   const removeCurrentDialog = useCallback(() => {
     setDialogs((dialogs) =>
       dialogs.filter((dialog) => dialog.id !== currentDialog.id)
     );
   }, [currentDialog.id, setDialogs]);
+
   const handleClose = () => {
     setCurrentDialogId(null);
     if (comments.length === 0) {
       removeCurrentDialog();
     }
   };
+
   const handleResolve = () => {
     setCurrentDialogId(null);
     removeCurrentDialog();
   };
 
-  const commentsGroupByDate = useMemo(
-    () =>
-      groupBy(comments, (comment) =>
-        moment(comment.timestamp).format("YYYY-MM-DD")
-      ),
-    [comments]
-  );
-
   useEffect(() => {
     setText("");
   }, [currentDialog.id]);
 
+  const getPosition = useCallback(
+    () => ({
+      left: position.x + ((currentImage?.x || 0) + x) * zoom,
+
+      top: position.y + ((currentImage?.y || 0) + y) * zoom,
+    }),
+    [currentImage?.x, currentImage?.y, position.x, position.y, x, y, zoom]
+  );
   return (
     <div
-      className="absolute transform translate-x-14 -translate-y-1/2"
+      className="absolute z-10 transform translate-x-14 -translate-y-1/2 -mt-2"
       style={{
-        top: position.y + y * zoom,
-        left: position.x + x * zoom,
+        ...getPosition(),
         width: 350,
       }}
     >
       <Tip />
-      <div className="overflow-hidden bg-white rounded-lg shadow-lg">
+      <div className="select-none overflow-hidden bg-white rounded-lg shadow-lg">
         <div className="flex items-center border-b border-gray-300 py-2 px-4 gap-x-2">
           {Object.entries(COLORS).map(([key, value]) => (
             <div className="flex justify-center items-center" key={key}>
@@ -161,20 +173,27 @@ const CommentsDialog = (props: {
         )}
         <div className="flex px-4 py-2">
           <span className="font-bold pr-2">{username} :</span>
-          <input
-            type="text"
-            className="flex-1 border border-gray-300 rounded-md px-2"
-            placeholder="Add a comment"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-          />
-          <button
-            disabled={!text}
-            className="pl-2 text-blue-500"
-            onClick={sendComment}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              sendComment();
+            }}
           >
-            <MdSend size={20} />
-          </button>
+            <input
+              type="text"
+              className="flex-1 border border-gray-300 rounded-md px-2"
+              placeholder="Add a comment"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+            />
+            <button
+              disabled={!text}
+              type="submit"
+              className="pl-2 text-blue-500"
+            >
+              <MdSend size={20} />
+            </button>
+          </form>
         </div>
       </div>
     </div>

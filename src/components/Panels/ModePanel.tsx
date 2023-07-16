@@ -2,9 +2,9 @@ import { MdOutlineImage, MdOutlineMessage } from "react-icons/md";
 import { PanelsProps } from "./types";
 
 const ModePanel = (
-  props: Pick<PanelsProps, "enableDragImage" | "setEnableDragImage">
+  props: Pick<PanelsProps, "enableMoveImage" | "setEnableMoveImage">
 ) => {
-  const { enableDragImage, setEnableDragImage } = props;
+  const { enableMoveImage, setEnableMoveImage } = props;
   const activeClass = "bg-slate-400 text-black";
   return (
     <div>
@@ -13,9 +13,9 @@ const ModePanel = (
         <button
           className={
             "flex-grow py-4 btn rounded-none felx flex-col justify-center " +
-            (enableDragImage ? "" : activeClass)
+            (enableMoveImage ? "" : activeClass)
           }
-          onClick={() => setEnableDragImage(false)}
+          onClick={() => setEnableMoveImage(false)}
         >
           <MdOutlineMessage size={20} />
           <span className="text-xs">Add comment</span>
@@ -23,9 +23,9 @@ const ModePanel = (
         <button
           className={
             "flex-grow py-4 btn rounded-none flex flex-col justify-center " +
-            (enableDragImage ? activeClass : "")
+            (enableMoveImage ? activeClass : "")
           }
-          onClick={() => setEnableDragImage(true)}
+          onClick={() => setEnableMoveImage(true)}
         >
           <MdOutlineImage size={20} />
           <span className="text-xs">Move image</span>
