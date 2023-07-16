@@ -168,15 +168,11 @@ const App = () => {
                 id={id}
                 x={x}
                 y={y}
-                zoom={zoom}
-                position={position}
                 src={src}
                 setImages={setImages}
                 setCurrentDialogId={setCurrentDialogId}
                 imageDialogs={dialogs.filter((dialog) => dialog.imageId === id)}
                 setDialogs={setDialogs}
-                currentDialogRef={currentDialogRef}
-                dialogsActionRef={dialogsActionRef}
               />
             ))}
             {/* {dialogs.map((dialog, index) => (
@@ -205,6 +201,9 @@ const App = () => {
           zoom={zoom}
           position={position}
           currentDialog={currentDialog}
+          currentImage={images.find(
+            (image) => image.id === currentDialog.imageId
+          )}
           setCurrentDialogId={setCurrentDialogId}
         />
       )}

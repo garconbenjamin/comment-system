@@ -9,7 +9,7 @@ import {
 import { MdClose, MdSend } from "react-icons/md";
 import { groupBy } from "lodash";
 import moment from "moment";
-import type { Dialog } from "types";
+import type { Dialog, Image } from "types";
 import { v4 as uuid } from "uuid";
 import { COLORS } from "constant";
 const Tip = () => (
@@ -17,6 +17,7 @@ const Tip = () => (
 );
 const CommentsDialog = (props: {
   currentDialog: Dialog;
+  currentImage?: Image;
   setDialogs: Dispatch<SetStateAction<Dialog[]>>;
   setCurrentDialogId: Dispatch<SetStateAction<string | null>>;
   zoom: { x: number; y: number };
@@ -31,6 +32,7 @@ const CommentsDialog = (props: {
     currentDialog,
     position,
     zoom,
+    currentImage,
   } = props;
   const { comments, x, y } = props.currentDialog;
 
@@ -84,12 +86,28 @@ const CommentsDialog = (props: {
     setText("");
   }, [currentDialog.id]);
 
+  const getPosition = useCallback(
+    () => ({
+      left: position.x + ((currentImage?.x || 0) + x) * zoom.x,
+
+      top: position.y + ((currentImage?.y || 0) + y) * zoom.y,
+    }),
+    [
+      currentImage?.x,
+      currentImage?.y,
+      position.x,
+      position.y,
+      x,
+      y,
+      zoom.x,
+      zoom.y,
+    ]
+  );
   return (
     <div
       className="absolute transform translate-x-14 -translate-y-1/2"
       style={{
-        top: position.y + y * zoom.x,
-        left: position.x + x * zoom.y,
+        ...getPosition(),
         width: 350,
       }}
     >

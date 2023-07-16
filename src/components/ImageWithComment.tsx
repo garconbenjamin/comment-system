@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction } from "react";
 import { InteractionEvent } from "@pixi/interaction";
 import { Container, Sprite } from "@pixi/react";
 import useSpriteDrag from "hooks/useSpriteDrag";
@@ -10,13 +10,9 @@ import MarkPoint from "components/MarkPoint";
 
 const ImageWithComment = (
   props: Image & {
-    zoom: { x: number; y: number };
-    position: { x: number; y: number };
     imageDialogs: Dialog[];
     setDialogs: SetDialogs;
     setImages: Dispatch<SetStateAction<Image[]>>;
-    currentDialogRef: React.MutableRefObject<Dialog | null>;
-    dialogsActionRef: React.MutableRefObject<SetDialogs | null>;
     setCurrentDialogId: Dispatch<SetStateAction<string | null>>;
   }
 ) => {
@@ -28,8 +24,6 @@ const ImageWithComment = (
     setImages,
     setDialogs,
     setCurrentDialogId,
-    zoom,
-    position,
     imageDialogs,
   } = props;
   const { handlers } = useSpriteDrag({ setImages });
@@ -73,7 +67,13 @@ const ImageWithComment = (
     >
       <Sprite image={src} interactive cursor="pointer" />
       {imageDialogs.map(({ x, y, color, id }) => (
-        <MarkPoint x={x} y={y} color={color} key={id} />
+        <MarkPoint
+          x={x}
+          y={y}
+          color={color}
+          key={id}
+          onClick={() => setCurrentDialogId(id)}
+        />
       ))}
     </Container>
   );
