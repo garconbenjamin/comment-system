@@ -12,14 +12,27 @@ const ImageWithComment = (
   props: Image & {
     zoom: { x: number; y: number };
     position: { x: number; y: number };
+    imageDialogs: Dialog[];
+    setDialogs: SetDialogs;
     setImages: Dispatch<SetStateAction<Image[]>>;
     currentDialogRef: React.MutableRefObject<Dialog | null>;
     dialogsActionRef: React.MutableRefObject<SetDialogs | null>;
+    setCurrentDialogId: Dispatch<SetStateAction<string | null>>;
   }
 ) => {
-  const { id, src, x, y, setImages, zoom, position } = props;
+  const {
+    id,
+    src,
+    x,
+    y,
+    setImages,
+    setDialogs,
+    setCurrentDialogId,
+    zoom,
+    position,
+    imageDialogs,
+  } = props;
   const { handlers } = useSpriteDrag({ setImages });
-  const [dialogs, setDialogs] = useState<Dialog[]>([]);
 
   const handleAddMarkPoint = (event: InteractionEvent) => {
     event.stopPropagation();
@@ -35,7 +48,7 @@ const ImageWithComment = (
       color: "yellow",
       imageId: id,
     };
-
+    setCurrentDialogId(dialogId);
     setDialogs((prev) => {
       if (prev.length > 0 && prev[prev.length - 1]?.comments.length === 0) {
         prev.pop();
@@ -59,7 +72,7 @@ const ImageWithComment = (
       pointermove={handlers.onDragMove}
     >
       <Sprite image={src} interactive cursor="pointer" />
-      {dialogs.map(({ x, y, color, id }) => (
+      {imageDialogs.map(({ x, y, color, id }) => (
         <MarkPoint x={x} y={y} color={color} key={id} />
       ))}
     </Container>

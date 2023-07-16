@@ -19,7 +19,7 @@ const CommentsDialog = (props: {
   currentDialog: Dialog;
   setDialogs: Dispatch<SetStateAction<Dialog[]>>;
   setCurrentDialogId: Dispatch<SetStateAction<string | null>>;
-  zoom: number;
+  zoom: { x: number; y: number };
   position: { x: number; y: number };
   username: string;
 }) => {
@@ -88,8 +88,8 @@ const CommentsDialog = (props: {
     <div
       className="absolute transform translate-x-14 -translate-y-1/2"
       style={{
-        top: position.y + y * zoom,
-        left: position.x + x * zoom,
+        top: position.y + y * zoom.x,
+        left: position.x + x * zoom.y,
         width: 350,
       }}
     >

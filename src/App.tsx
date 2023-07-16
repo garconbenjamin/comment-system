@@ -1,4 +1,4 @@
-import { Dispatch, useEffect, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { DropShadowFilter } from "@pixi/filter-drop-shadow";
 import { Container, Sprite, Stage, Text, withFilters } from "@pixi/react";
@@ -41,8 +41,10 @@ const App = () => {
   // User action flags
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [isPressingWhiteSpace, setIsPressingWhiteSpace] = useState(false);
-  // const [currentDialog, setCurrentDialog] = useState<Dialog | null>(null);
+
   const [enableDragImage, setEnableDragImage] = useState(false);
+
+  const [currentDialogId, setCurrentDialogId] = useState<string | null>(null);
 
   const currentDialogRef = useRef<Dialog | null>(null);
   const mouseDownPositionRef = useRef(position);
@@ -142,6 +144,7 @@ const App = () => {
     setZoom(newScale);
   };
 
+  const currentDialog = dialogs.find((dialog) => dialog.id === currentDialogId);
   return (
     <div
       id="main"
@@ -169,6 +172,9 @@ const App = () => {
                 position={position}
                 src={src}
                 setImages={setImages}
+                setCurrentDialogId={setCurrentDialogId}
+                imageDialogs={dialogs.filter((dialog) => dialog.imageId === id)}
+                setDialogs={setDialogs}
                 currentDialogRef={currentDialogRef}
                 dialogsActionRef={dialogsActionRef}
               />
@@ -192,17 +198,16 @@ const App = () => {
           </Container>
         </Stage>
       </div>
-      {/* {currentDialogRef.current && (
+      {currentDialog && (
         <CommentsDialog
-          currentDialogRef={currentDialogRef}
           setDialogs={setDialogs}
           username={username}
           zoom={zoom}
           position={position}
-          images={images}
-          dialogsActionRef={dialogsActionRef}
+          currentDialog={currentDialog}
+          setCurrentDialogId={setCurrentDialogId}
         />
-      )} */}
+      )}
       <Panels
         enableDragImage={enableDragImage}
         setEnableDragImage={setEnableDragImage}
