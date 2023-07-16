@@ -11,10 +11,9 @@ Welcome to the Comment System repository! This repository contains the source co
 
 - [Installation](#installation)
 - [Usage](#usage)
-- [Instructions](#instructions)
-- [Scripts](#scripts)
-- [Contributing](#contributing)
-- [License](#license)
+- [How to use](#how-to-use)
+
+
 
 ## Installation
 
